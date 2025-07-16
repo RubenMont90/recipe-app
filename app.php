@@ -23,10 +23,31 @@ function createRecipe($conn){
     : "Erro a adicionar Receita.\n";
 }
 
-// Cria Categorias [*]
-function createCategory(){
-    // TODO: IMPLEMENT
-    echo "Not Implemented yet";
+// Cria Categorias
+function createCategory($conn){
+    $nome = readline("Nome da Categoria a Adicionar: ");
+
+    // Verificar se já existe essa categoria (case insensitive) [se sim devolver id ao user]
+    $nomes = [];
+    $query = "SELECT * FROM categorias;";
+    $resultado = mysqli_query($conn, $query);
+    while($linha = mysqli_fetch_assoc($resultado)){
+        $nomes += [ $linha["id"] => strtolower($linha["nome"])];
+    }
+
+    if(in_array(strtolower($nome), $nomes)){
+        echo "Erro: Categoria não adicionada à Base de Dados.\n";
+        echo "Categoria '$nome' já existe na Base de Dados (ID:<" . array_search(strtolower($nome), $nomes) . ">)\n";
+        return;
+    }
+    
+    // Criar comando SQL para inserir
+    $query = "INSERT INTO categorias (nome) VALUES ('$nome');";
+
+    //Executar o comando
+    echo mysqli_query($conn, $query)
+    ? "Categoria '$nome' adicionada com sucesso. (ID:<" . mysqli_insert_id($conn) . ">)\n" 
+    : "Erro a adicionar Categoria.\n";
 }
 
 // Cria categorias_receitas [*]
