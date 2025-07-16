@@ -254,6 +254,4 @@ function connectDB($hostname, $username, $password, $database){
     return $conn;
 }
 
-//"changed menu, added the functions to implement in phase 5"
-
 ?>
