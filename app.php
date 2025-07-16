@@ -11,7 +11,7 @@ mysqli_close($conn);
 // Abre conexão com uma Base de Dados
 function connectDB($hostname, $username, $password, $database){
     $conn = mysqli_connect($hostname, $username, $password, $database);
-    echo $conn ? " Ligação à base de dados efetuada com sucesso!\n" : "Erro na conexão com a base de dados!\n";
+    echo $conn ? "Ligação à base de dados efetuada com sucesso!\n" : "Erro na conexão com a base de dados!\n";
     return $conn;
 }
 
@@ -33,8 +33,23 @@ function createRecipe($conn){
 
 // Lista todas as receitas
 function listRecipes($conn){
-    // TODO: IMPLEMENT
-    echo("Por implementar...\n");
+
+    // Criar comando SQL
+    $query = "SELECT * FROM receitas;";
+
+    $resultado = mysqli_query($conn, $query);
+
+    echo "\n\n* * * * * * * * * * * * * * * * * * | RECEITAS | * * * * * * * * * * * * * * * * * * *\n\n";
+    while($linha = mysqli_fetch_assoc($resultado)){
+        echo "| ID " . $linha["id"] . " | ";
+        echo "Nome: '" . $linha["nome"] . "' | ";
+        echo "Tempo: " . $linha["tempo_confecao"] . " min | ";
+        echo $linha["doses"] . " doses |\n";
+        echo "Descrição:\n" . $linha["descricao"] . "\n\n";
+        echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n";
+    }
+
+    //TODO (Optional): Check better formatting for descricao, possibly \t for each \n
 }
 
 // Atualiza receitas existentes
