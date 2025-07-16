@@ -1,6 +1,6 @@
 <?php
 
-/* FASE 4: Operações CRUD Básicas para Receitas em app.php */
+/* FASE 5: Gestão de Categorias e Associação Receita-Categoria */
 $conn = connectDB('localhost', 'root', '', 'db_recipes');
 menu($conn);
 mysqli_close($conn);
@@ -21,6 +21,18 @@ function createRecipe($conn){
     echo mysqli_query($conn, $query)
     ? "Receita de '$nome' adicionada com Sucesso (ID:<".mysqli_insert_id($conn).">)\n" 
     : "Erro a adicionar Receita.\n";
+}
+
+// Cria Categorias [*]
+function createCategory(){
+    // TODO: IMPLEMENT
+    echo "Not Implemented yet";
+}
+
+// Cria categorias_receitas [*]
+function createCategoryRecipes(){
+    // TODO: IMPLEMENT
+    echo "Not Implemented yet";
 }
 
 // ****************************************| READ |****************************************
@@ -46,6 +58,18 @@ function listRecipes($conn, $show_description = true){
     }
 
     //TODO (Optional): Check better formatting for descricao, possibly \t for each \n
+}
+
+// Lista todas as Categorias [*]
+function listCategories(){
+    // TODO: IMPLEMENT
+    echo "Not Implemented yet";
+}
+
+// Lista todas as Receitas dada uma Categoria [*]
+function listRecipesInCategory(){
+    // TODO: IMPLEMENT
+    echo "Not Implemented yet";
 }
 
 // ****************************************| UPDATE |****************************************
@@ -146,6 +170,12 @@ function deleteRecipe($conn){
     }
 }
 
+// Apaga categorias_receitas [*]
+function deleteCategoryRecipes(){
+    // TODO: IMPLEMENT
+    echo "Not Implemented yet";
+}
+
 // ****************************************| PROGRAM |****************************************
 
 // Loop Menu para interagir com o User
@@ -171,6 +201,21 @@ function menu($conn){
             case 4:
                 deleteRecipe($conn);
                 break;
+            case 5:
+                createCategory($conn);
+                break;
+            case 6:
+                listCategories($conn);
+                break;
+            case 7:
+                createCategoryRecipes($conn);
+                break;
+            case 8:
+                deleteCategoryRecipes($conn);
+                break;
+            case 9:
+                listRecipesInCategory($conn);
+                break;
             default:
                 echo "\nERRO: Opção Inválida!\n";
                 break;
@@ -180,27 +225,35 @@ function menu($conn){
 
 // Imprime Menu
 function printMenu(){
-    echo "\n* * * * * * Escolha uma opção * * * * * *\n";
-    echo "*\t\t\t\t\t*\n";
-    echo "*  1 => Criar Novas Receitas \t\t*\n";
-    echo "*  2 => Listar todas as Receitas\t*\n";
-    echo "*  3 => Atualizar receitas existentes\t*\n";
-    echo "*  4 => Apagar receitas\t\t\t*\n";
-    echo "*\t\t\t\t\t*\n";
-    echo "* * * * * * * * * * * * * * * * * * * * *\n";
-    echo "*\t\t\t\t\t*\n";
-    echo "*  0 => Sair do Programa\t\t*\n";
-    echo "*\t\t\t\t\t*\n";
-    echo "* * * * * * * * * * * * * * * * * * * * *\n";
+    echo "\n* * * * * * * | Escolha uma opção | * * * * * * *\n";
+    echo "*\t\t\t\t\t\t*\n";
+    echo "*  0 => Sair do Programa\t\t\t*\n";
+    echo "*\t\t\t\t\t\t*\n";
+    echo "* * * * * * * * * | Fase  4 | * * * * * * * * * *\n";
+    echo "*\t\t\t\t\t\t*\n";
+    echo "*  1 => Criar Novas Receitas \t\t\t*\n";
+    echo "*  2 => Listar todas as Receitas\t\t*\n";
+    echo "*  3 => Atualizar receitas existentes\t\t*\n";
+    echo "*  4 => Apagar receitas\t\t\t\t*\n";
+    echo "*\t\t\t\t\t\t*\n";
+    echo "* * * * * * * * * | Fase  5 | * * * * * * * * * *\n";
+    echo "*\t\t\t\t\t\t*\n";
+    echo "*  5 => Criar Categorias\t\t\t*\n";
+    echo "*  6 => Listar Categorias\t\t\t*\n";
+    echo "*  7 => Associar Receitas a Categorias\t\t*\n";
+    echo "*  8 => Desassociar Receitas a Categorias\t*\n";
+    echo "*  9 => Listar Receitas por Categoria\t\t*\n";
+    echo "*\t\t\t\t\t\t*\n";
+    echo "* * * * * * * * * * * * * * * * * * * * * * * * *\n";
 }
 
 // Abre conexão com uma Base de Dados
 function connectDB($hostname, $username, $password, $database){
     $conn = mysqli_connect($hostname, $username, $password, $database);
-    echo $conn ? "Ligação à base de dados efetuada com sucesso!\n" : "Erro na conexão com a base de dados!\n";
+    echo $conn ? "> Ligação à base de dados efetuada com sucesso!\n" : "> Erro na conexão com a base de dados!\n";
     return $conn;
 }
 
-
+//"changed menu, added the functions to implement in phase 5"
 
 ?>
