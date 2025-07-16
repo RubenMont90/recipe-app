@@ -32,23 +32,23 @@ function createRecipe($conn){
 }
 
 /*  Lista todas as receitas  (*)
- *      $short = true, para imprimir uma versão mais curta sem descrição
+ *      $show_description = false, para imprimir uma versão mais curta sem descrição
+ *      (usado em funções onde se pede ao user para colocar id)
  */
-function listRecipes($conn, $short = false){
-
+function listRecipes($conn, $show_description = true){
     // Criar comando SQL
     $query = "SELECT * FROM receitas;";
 
     $resultado = mysqli_query($conn, $query);
 
-    echo $short ? "" : "\n\n* * * * * * * * * * * * * * * * * * | RECEITAS | * * * * * * * * * * * * * * * * * * *\n\n";
+    echo $show_description ? "\n\n* * * * * * * * * * * * * * * * * * | RECEITAS | * * * * * * * * * * * * * * * * * * *\n\n" : "";
     while($linha = mysqli_fetch_assoc($resultado)){
         echo "| ID " . $linha["id"] . " | ";
         echo "Nome: '" . $linha["nome"] . "' | ";
         echo "Tempo: " . $linha["tempo_confecao"] . " min | ";
         echo $linha["doses"] . " doses |\n";
-        echo $short ? "" : "Descrição:\n" . $linha["descricao"] . "\n\n";
-        echo $short ? "" : "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n";
+        echo $show_description ? "Descrição:\n" . $linha["descricao"] . "\n\n" : "";
+        echo $show_description ?"* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n\n" : "";
     }
 
     //TODO (Optional): Check better formatting for descricao, possibly \t for each \n
@@ -57,7 +57,7 @@ function listRecipes($conn, $short = false){
 // Atualiza receitas existentes
 function updateRecipe($conn){
     // listar receitas (sem a descrição)
-    listRecipes($conn, true);
+    listRecipes($conn, false);
 
     // pedir id da receita
     $id = readline("Id da Receita a Editar: ");
@@ -84,14 +84,73 @@ function updateRecipe($conn){
     doses = $novo_doses 
     WHERE id = $id;";
     echo mysqli_query($conn, $query)
-    ? "Receita de '$novo_nome' atualizada com sucesso (ID:<$id>)\n" 
+    ? "Receita de '$novo_nome' (ID:<$id>) atualizada com sucesso.\n" 
     : "Erro a atualizar a receita.\n";
 }
 
 // Apaga receitas
-function deleteRecipes($conn){
-    // TODO: IMPLEMENT
-    echo("Por implementar...\n");
+function deleteRecipe($conn){
+
+    // listar receitas (sem a descrição)
+    listRecipes($conn, false);
+    
+    $id = readline("Id da Receita a Apagar: ");
+
+    $query = "SELECT * FROM receitas WHERE id = $id;";
+
+    $resultado = mysqli_query($conn, $query);
+    if(mysqli_num_rows($resultado) == 0){
+        echo "Receita não encontrada.\n";
+        return;
+    }
+
+    // remover receita de <receitas>
+    $query = "DELETE FROM receitas WHERE id = $id;";
+    echo mysqli_query($conn, $query)
+    ? "Receita (ID:<$id>) eliminada de <receitas> com sucesso.\n" 
+    : "Erro a eliminar a receita de <receitas>.\n";
+
+    /*
+    // remover associacoes com a receita de <categorias_receitas>
+    $query = "DELETE FROM categorias_receitas WHERE id_receita = $id;";
+    echo mysqli_query($conn, $query)
+    ? "Receita (ID:<$id>) eliminada de <categorias_receitas> com sucesso.\n" 
+    : "Erro a eliminar a receita de <categorias_receitas>.\n";
+    */
+
+    // verificar se os nomes de ingredientes estão presentes em mais alguma receita (ingredientes_receitas)
+    $query = "SELECT * FROM ingredientes_receitas WHERE id_receita = $id;";
+    $resultado = mysqli_query($conn, $query);
+    $ingredientes = [];
+
+    // guardar todos os ingredientes presentes na receita
+    echo "Ingredientes da receita:\n";
+    while($linha = mysqli_fetch_assoc($resultado)){
+        $ingredientes[] = $linha["nome_ingrediente"];
+        echo "> Nome: ". $linha["nome_ingrediente"] . "\n";
+    }
+
+    
+    // remover associacoes com a receita da tabela ingredientes_receitas
+    $query = "DELETE FROM ingredientes_receitas WHERE id_receita = $id;";
+    echo mysqli_query($conn, $query)
+    ? "Receita (ID:<$id>) eliminada de <ingredientes_receitas> com sucesso.\n" 
+    : "Erro a eliminar a receita de <ingredientes_receitas>.\n";
+    
+
+    // procurar nos <ingredientes_receitas> por ingrediente da receita e eliminar de <ingredientes>
+    foreach($ingredientes as $ingrediente){
+        $query = "SELECT * FROM ingredientes_receitas WHERE nome_ingrediente = '$ingrediente';";
+        $result = mysqli_query($conn, $query);
+        if(mysqli_num_rows($result) == 0){
+            // eliminar o ingrediente em questão dos ingredientes_receitas (não está presente em mais receitas)
+            $query = "DELETE FROM ingredientes WHERE nome = '$ingrediente';";
+            echo mysqli_query($conn, $query)
+            ? "Ingrediente (Nome:<$ingrediente>) eliminado de <ingredientes> com sucesso.\n" 
+            : "Erro a eliminar o ingrediente de <ingredientes>.\n";
+        }
+    }
+
 }
 
 // Loop Menu para interagir com o User
@@ -115,7 +174,7 @@ function menu($conn){
                 updateRecipe($conn);
                 break;
             case 4:
-                deleteRecipes($conn);
+                deleteRecipe($conn);
                 break;
             default:
                 echo "\nERRO: Opção Inválida!\n";
@@ -139,5 +198,8 @@ function printMenu(){
     echo "*\t\t\t\t\t*\n";
     echo "* * * * * * * * * * * * * * * * * * * * *\n";
 }
+
+
+
 
 ?>
