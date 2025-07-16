@@ -109,14 +109,12 @@ function deleteRecipe($conn){
     echo mysqli_query($conn, $query)
     ? "Receita (ID:<$id>) eliminada de <receitas> com sucesso.\n" 
     : "Erro a eliminar a receita de <receitas>.\n";
-
-    /*
+    
     // remover associacoes com a receita de <categorias_receitas>
     $query = "DELETE FROM categorias_receitas WHERE id_receita = $id;";
     echo mysqli_query($conn, $query)
     ? "Receita (ID:<$id>) eliminada de <categorias_receitas> com sucesso.\n" 
     : "Erro a eliminar a receita de <categorias_receitas>.\n";
-    */
 
     // verificar se os nomes de ingredientes estão presentes em mais alguma receita (ingredientes_receitas)
     $query = "SELECT * FROM ingredientes_receitas WHERE id_receita = $id;";
@@ -130,14 +128,12 @@ function deleteRecipe($conn){
         echo "> Nome: ". $linha["nome_ingrediente"] . "\n";
     }
 
-    
-    // remover associacoes com a receita da tabela ingredientes_receitas
+    // remover associacoes com a receita de <ingredientes_receitas>
     $query = "DELETE FROM ingredientes_receitas WHERE id_receita = $id;";
     echo mysqli_query($conn, $query)
     ? "Receita (ID:<$id>) eliminada de <ingredientes_receitas> com sucesso.\n" 
     : "Erro a eliminar a receita de <ingredientes_receitas>.\n";
     
-
     // procurar nos <ingredientes_receitas> por ingrediente da receita e eliminar de <ingredientes>
     foreach($ingredientes as $ingrediente){
         $query = "SELECT * FROM ingredientes_receitas WHERE nome_ingrediente = '$ingrediente';";
@@ -150,7 +146,6 @@ function deleteRecipe($conn){
             : "Erro a eliminar o ingrediente de <ingredientes>.\n";
         }
     }
-
 }
 
 // Loop Menu para interagir com o User
