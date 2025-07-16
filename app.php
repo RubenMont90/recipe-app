@@ -1,19 +1,11 @@
 <?php
 
 /* FASE 4: Operações CRUD Básicas para Receitas em app.php */
-
 $conn = connectDB('localhost', 'root', '', 'db_recipes');
-
 menu($conn);
-
 mysqli_close($conn);
 
-// Abre conexão com uma Base de Dados
-function connectDB($hostname, $username, $password, $database){
-    $conn = mysqli_connect($hostname, $username, $password, $database);
-    echo $conn ? "Ligação à base de dados efetuada com sucesso!\n" : "Erro na conexão com a base de dados!\n";
-    return $conn;
-}
+// ****************************************| CREATE |****************************************
 
 // Cria novas receitas (campos: nome, descrição, tempo de preparação, doses)
 function createRecipe($conn){
@@ -30,6 +22,8 @@ function createRecipe($conn){
     ? "Receita de '$nome' adicionada com Sucesso (ID:<".mysqli_insert_id($conn).">)\n" 
     : "Erro a adicionar Receita.\n";
 }
+
+// ****************************************| READ |****************************************
 
 /*  Lista todas as receitas  (*)
  *      $show_description = false, para imprimir uma versão mais curta sem descrição
@@ -53,6 +47,8 @@ function listRecipes($conn, $show_description = true){
 
     //TODO (Optional): Check better formatting for descricao, possibly \t for each \n
 }
+
+// ****************************************| UPDATE |****************************************
 
 // Atualiza receitas existentes
 function updateRecipe($conn){
@@ -87,6 +83,8 @@ function updateRecipe($conn){
     ? "Receita de '$novo_nome' (ID:<$id>) atualizada com sucesso.\n" 
     : "Erro a atualizar a receita.\n";
 }
+
+// ****************************************| DELETE |****************************************
 
 // Apaga receitas
 function deleteRecipe($conn){
@@ -148,6 +146,8 @@ function deleteRecipe($conn){
     }
 }
 
+// ****************************************| PROGRAM |****************************************
+
 // Loop Menu para interagir com o User
 function menu($conn){
     do{
@@ -194,6 +194,12 @@ function printMenu(){
     echo "* * * * * * * * * * * * * * * * * * * * *\n";
 }
 
+// Abre conexão com uma Base de Dados
+function connectDB($hostname, $username, $password, $database){
+    $conn = mysqli_connect($hostname, $username, $password, $database);
+    echo $conn ? "Ligação à base de dados efetuada com sucesso!\n" : "Erro na conexão com a base de dados!\n";
+    return $conn;
+}
 
 
 
