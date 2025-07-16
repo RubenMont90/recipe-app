@@ -16,23 +16,37 @@ function connectDB($hostname, $username, $password, $database){
 }
 
 // Cria novas receitas (campos: nome, descrição, tempo de preparação, doses)
-function createNewRecipe($conn){
-    // TODO: IMPLEMENT
+function createRecipe($conn){
+    $nome = readline("Nome da Receita: ");
+    $descricao = readline("Descrição: ");
+    $tempo_confecao = readline("Tempo de Confeção (em minutos): ");
+    $doses = readline("Doses: ");
+
+    // Criar comando SQL
+    $query = "INSERT INTO receitas (nome, descricao, tempo_confecao, doses) VALUES ('$nome', '$descricao', $tempo_confecao, $doses);";
+    
+    //Executar o comando
+    echo mysqli_query($conn, $query)
+    ? "Receita de '$nome' adicionada com Sucesso (ID:<".mysqli_insert_id($conn).">)\n" 
+    : "Erro a adicionar Receita.\n";
 }
 
 // Lista todas as receitas
 function listRecipes($conn){
     // TODO: IMPLEMENT
+    echo("Por implementar...\n");
 }
 
 // Atualiza receitas existentes
 function updateRecipes($conn){
     // TODO: IMPLEMENT
+    echo("Por implementar...\n");
 }
 
 // Apaga receitas
 function deleteRecipes($conn){
     // TODO: IMPLEMENT
+    echo("Por implementar...\n");
 }
 
 // Loop Menu para interagir com o User
@@ -47,7 +61,7 @@ function menu($conn){
                 echo "\n< Sair do Programa >";
                 break;
             case 1:
-                createNewRecipe($conn);
+                createRecipe($conn);
                 break;
             case 2:
                 listRecipes($conn);
@@ -80,4 +94,5 @@ function printMenu(){
     echo "*\t\t\t\t\t*\n";
     echo "* * * * * * * * * * * * * * * * * * * * *\n";
 }
+
 ?>
