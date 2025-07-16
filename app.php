@@ -1,20 +1,38 @@
 <?php
 
-/* FASE 3: Criação da Base de Dados e Exportação de Dados de Teste */
+/* FASE 4: Operações CRUD Básicas para Receitas em app.php */
 
-// 1. e 2.
 $conn = connectDB('localhost', 'root', '', 'db_recipes');
 
-// 3. Fecha a ligação à base de dados.
-mysqli_close($conn);        
+//
+
+mysqli_close($conn);
 
 // Abre conexão com uma Base de Dados
 function connectDB($hostname, $username, $password, $database){
-    // 1. Estabelece ligação à base de dados com mysqli
     $conn = mysqli_connect($hostname, $username, $password, $database);
-    // 2. Mostra a mensagem: Ligação à base de dados efetuada com sucesso!
     echo $conn ? " Ligação à base de dados efetuada com sucesso!\n" : "Erro na conexão com a base de dados!\n";
     return $conn;
+}
+
+// Cria novas receitas (campos: nome, descrição, tempo de preparação, doses)
+function createNewRecipe($conn){
+    // TODO: IMPLEMENT
+}
+
+// Lista todas as receitas
+function listRecipes($conn){
+    // TODO: IMPLEMENT
+}
+
+// Atualiza receitas existentes
+function updateRecipes($conn){
+    // TODO: IMPLEMENT
+}
+
+// Apaga receitas
+function deleteRecipes($conn){
+    // TODO: IMPLEMENT
 }
 
 ?>
