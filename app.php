@@ -31,31 +31,61 @@ function createRecipe($conn){
     : "Erro a adicionar Receita.\n";
 }
 
-// Lista todas as receitas
-function listRecipes($conn){
+/*  Lista todas as receitas  (*)
+ *      $short = true, para imprimir uma versão mais curta sem descrição
+ */
+function listRecipes($conn, $short = false){
 
     // Criar comando SQL
     $query = "SELECT * FROM receitas;";
 
     $resultado = mysqli_query($conn, $query);
 
-    echo "\n\n* * * * * * * * * * * * * * * * * * | RECEITAS | * * * * * * * * * * * * * * * * * * *\n\n";
+    echo $short ? "" : "\n\n* * * * * * * * * * * * * * * * * * | RECEITAS | * * * * * * * * * * * * * * * * * * *\n\n";
     while($linha = mysqli_fetch_assoc($resultado)){
         echo "| ID " . $linha["id"] . " | ";
         echo "Nome: '" . $linha["nome"] . "' | ";
         echo "Tempo: " . $linha["tempo_confecao"] . " min | ";
         echo $linha["doses"] . " doses |\n";
-        echo "Descrição:\n" . $linha["descricao"] . "\n\n";
-        echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n";
+        echo $short ? "" : "Descrição:\n" . $linha["descricao"] . "\n\n";
+        echo $short ? "" : "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n";
     }
 
     //TODO (Optional): Check better formatting for descricao, possibly \t for each \n
 }
 
 // Atualiza receitas existentes
-function updateRecipes($conn){
-    // TODO: IMPLEMENT
-    echo("Por implementar...\n");
+function updateRecipe($conn){
+    // listar receitas (sem a descrição)
+    listRecipes($conn, true);
+
+    // pedir id da receita
+    $id = readline("Id da Receita a Editar: ");
+
+    // Verificar se a receita existe
+    $query = "SELECT id FROM receitas WHERE id = $id;";
+    $resultado = mysqli_query($conn, $query);
+    if(mysqli_num_rows($resultado) == 0){
+        echo "Receita não encontrada.\n";
+        return;
+    }
+
+    // pedir os novos campos
+    $novo_nome = readline("Nome da Receita: ");
+    $novo_descricao = readline("Descrição: ");
+    $novo_tempo_confecao = readline("Tempo de Confeção (em minutos): ");
+    $novo_doses = readline("Doses: ");
+
+    // atualizar receita
+    $query = "UPDATE receitas 
+    SET nome = '$novo_nome', 
+    descricao = '$novo_descricao', 
+    tempo_confecao = $novo_tempo_confecao, 
+    doses = $novo_doses 
+    WHERE id = $id;";
+    echo mysqli_query($conn, $query)
+    ? "Receita de '$novo_nome' atualizada com sucesso (ID:<$id>)\n" 
+    : "Erro a atualizar a receita.\n";
 }
 
 // Apaga receitas
@@ -82,7 +112,7 @@ function menu($conn){
                 listRecipes($conn);
                 break;
             case 3:
-                updateRecipes($conn);
+                updateRecipe($conn);
                 break;
             case 4:
                 deleteRecipes($conn);
