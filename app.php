@@ -2,7 +2,7 @@
 
 /* FASE 5: Gestão de Categorias e Associação Receita-Categoria */
 $conn = connectDB('localhost', 'root', '', 'db_recipes');
-menu($conn);
+shorterMenu($conn);
 mysqli_close($conn);
 
 // ****************************************| CREATE |****************************************
@@ -25,6 +25,9 @@ function createRecipe($conn){
 
 // Cria Categorias
 function createCategory($conn){
+    //Listar categorias
+    listCategories($conn);
+    
     $nome = readline("Nome da Categoria a Adicionar: ");
 
     // Verificar se já existe essa categoria (case insensitive) [se sim devolver id ao user]
@@ -81,10 +84,14 @@ function listRecipes($conn, $show_description = true){
     //TODO (Optional): Check better formatting for descricao, possibly \t for each \n
 }
 
-// Lista todas as Categorias [*]
-function listCategories(){
-    // TODO: IMPLEMENT
-    echo "Not Implemented yet";
+// Lista todas as Categorias
+function listCategories($conn){
+    // Criar comando SQL
+    $query = "SELECT id, nome FROM categorias;";
+    $resultado = mysqli_query($conn, $query);
+    while($linha = mysqli_fetch_assoc($resultado)){
+        echo "| ID " . $linha["id"] . " | Nome '" . $linha["nome"] . "' |\n";
+    }
 }
 
 // Lista todas as Receitas dada uma Categoria [*]
@@ -199,49 +206,69 @@ function deleteCategoryRecipes(){
 
 // ****************************************| PROGRAM |****************************************
 
-// Loop Menu para interagir com o User
+// Menu com todas as operações
 function menu($conn){
+    //do{
+    printMenu();
+
+    $menu_opt = readline("\n> ");
+
+    switch($menu_opt){
+        case 0:
+            break;
+        case 1:
+            createRecipe($conn);
+            break;
+        case 2:
+            listRecipes($conn);
+            break;
+        case 3:
+            updateRecipe($conn);
+            break;
+        case 4:
+            deleteRecipe($conn);
+            break;
+        case 5:
+            createCategory($conn);
+            break;
+        case 6:
+            listCategories($conn);
+            break;
+        case 7:
+            createCategoryRecipes($conn);
+            break;
+        case 8:
+            deleteCategoryRecipes($conn);
+            break;
+        case 9:
+            listRecipesInCategory($conn);
+            break;
+        default:
+            echo "\nERRO: Opção Inválida!\n";
+            break;
+    }
+    //}while($menu_opt != 0);
+    return $menu_opt;
+}
+
+// Menu mais curto
+function shorterMenu($conn){
     do{
-        printMenu();
-
-        $menu_opt = readline("\n> ");
-
-        switch($menu_opt){
-            case 0:
-                echo "\n< Sair do Programa >";
+        $opt = readline("\n| [M]enu | [S]air | > ");
+        $opt = strtolower($opt);
+        switch($opt){
+            case "m":
+                $opt = menu($conn);
+                $opt = $opt == 0 ? "s" : "";
                 break;
-            case 1:
-                createRecipe($conn);
-                break;
-            case 2:
-                listRecipes($conn);
-                break;
-            case 3:
-                updateRecipe($conn);
-                break;
-            case 4:
-                deleteRecipe($conn);
-                break;
-            case 5:
-                createCategory($conn);
-                break;
-            case 6:
-                listCategories($conn);
-                break;
-            case 7:
-                createCategoryRecipes($conn);
-                break;
-            case 8:
-                deleteCategoryRecipes($conn);
-                break;
-            case 9:
-                listRecipesInCategory($conn);
+            case "s":
                 break;
             default:
                 echo "\nERRO: Opção Inválida!\n";
                 break;
         }
-    }while($menu_opt != 0);
+    }while($opt != "s");
+    echo "\n< Sair do Programa >\n";
 }
 
 // Imprime Menu
@@ -271,8 +298,10 @@ function printMenu(){
 // Abre conexão com uma Base de Dados
 function connectDB($hostname, $username, $password, $database){
     $conn = mysqli_connect($hostname, $username, $password, $database);
-    echo $conn ? "> Ligação à base de dados efetuada com sucesso!\n" : "> Erro na conexão com a base de dados!\n";
+    echo $conn ? "\n> Ligação à base de dados efetuada com sucesso!\n" : "\n> Erro na conexão com a base de dados!\n";
     return $conn;
 }
+
+
 
 ?>
