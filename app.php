@@ -64,11 +64,27 @@ function createCategoryRecipes($conn){
 
     $id_recipe = readline("Id da Receita para adicionar categorias: ");
 
+    /*
+        SELECT categorias_receitas.id, receitas.nome AS receita, categorias.nome AS categoria
+        FROM categorias_receitas
+        INNER JOIN receitas
+        ON receitas.id = categorias_receitas.id_receita
+        INNER JOIN categorias
+        ON categorias.id = categorias_receitas.id_categoria;
+    */ 
     // Verificar se $id_recipe existe e é válido
+    $query = "SELECT * FROM receitas WHERE id = $id_recipe;";
+    $resultado = mysqli_query($conn, $query);
+    if(mysqli_num_rows($resultado) == 0){
+        echo "Erro: Não existe Receita com o ID<$id_recipe>.\n";
+        return;
+    }
 
     // Listar as categorias que a receita (JÁ TEM ASSOCIADAS) : IMPLEMENTAR listRecipeCategories()
+    listRecipeCategories($conn, $id_recipe, true);
 
     // Listar as categorias possiveis de adicionar (NÃO TEM ASSOCIADAS) : IMPLEMENTAR listAvailableRecipeCategories()
+    listRecipeCategories($conn, $id_recipe, false);
 
     $id_category = readline("Id da categoria a associar à receita: ");
 
@@ -119,6 +135,39 @@ function listCategories($conn){
 function listRecipesInCategory(){
     // TODO: IMPLEMENT
     echo "Not Implemented yet";
+}
+
+// (OPTIONAL) Listar as categorias que a receita (JÁ TEM ASSOCIADAS) | (NÃO TEM ASSOCIADAS)
+// ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+function listRecipeCategories($conn, $id_recipe = 0, $associated_with_recipe = NULL){
+
+    if($id_recipe == 0){
+        $id_recipe = readline("Id da Receita para adicionar categorias: ");
+    }
+
+    if($associated_with_recipe == null){
+        $associated_with_recipe = readline("Listar Categorias Associadas à Receita? (S/N) : ");
+    }
+
+    $query = "SELECT categorias.id, categorias.nome 
+    FROM categorias_receitas 
+    INNER JOIN categorias 
+    ON categorias_receitas.id_categoria = categorias.id 
+    WHERE categorias_receitas.id_receita = $id_recipe;";
+
+    /*
+    SELECT categorias.id, categorias.nome 
+    FROM categorias_receitas 
+    INNER JOIN categorias 
+    ON categorias_receitas.id_categoria = categorias.id 
+    WHERE categorias_receitas.id_receita NOT IN (2);
+    // nao associadas
+    */
+
+    $resultado = mysqli_query($conn, $query);
+    while($linha = mysqli_fetch_assoc($resultado)){
+        echo "| ID " . $linha["id"] . " | Nome '" . $linha["nome"] . "' |\n";
+    }
 }
 
 // ****************************************| UPDATE |****************************************
@@ -323,7 +372,5 @@ function connectDB($hostname, $username, $password, $database){
     echo $conn ? "\n> Ligação à base de dados efetuada com sucesso!\n" : "\n> Erro na conexão com a base de dados!\n";
     return $conn;
 }
-
-
 
 ?>
