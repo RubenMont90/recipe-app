@@ -53,10 +53,31 @@ function createCategory($conn){
     : "Erro a adicionar Categoria.\n";
 }
 
-// Cria categorias_receitas [*]
-function createCategoryRecipes(){
+// Cria categorias_receitas
+// (Associar categorias a uma receita)
+function createCategoryRecipes($conn){
     // TODO: IMPLEMENT
     echo "Not Implemented yet";
+    return;
+
+    listRecipes($conn, false);
+
+    $id_recipe = readline("Id da Receita para adicionar categorias: ");
+
+    // Verificar se $id_recipe existe e é válido
+
+    // Listar as categorias que a receita (JÁ TEM ASSOCIADAS) : IMPLEMENTAR listRecipeCategories()
+
+    // Listar as categorias possiveis de adicionar (NÃO TEM ASSOCIADAS) : IMPLEMENTAR listAvailableRecipeCategories()
+
+    $id_category = readline("Id da categoria a associar à receita: ");
+
+    // Verificar se o $id_category pertence à lista listAvailableRecipeCategories()
+
+    // INSERT em CATEGORIAS_RECEITAS
+    
+    // !!! PERGUNTAR SE É NECESSÁRIO LOOP PARA CONTINUAR A ADICIONAR CATEGORIAS OU SE É ONE AND DONE !!!
+
 }
 
 // ****************************************| READ |****************************************
@@ -199,6 +220,7 @@ function deleteRecipe($conn){
 }
 
 // Apaga categorias_receitas [*]
+// (Desassociar categorias a uma receita)
 function deleteCategoryRecipes(){
     // TODO: IMPLEMENT
     echo "Not Implemented yet";
