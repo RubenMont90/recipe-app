@@ -25,7 +25,6 @@ function createRecipe($conn){
 
 // Cria Categorias
 function createCategory($conn){
-    //Listar categorias
     listCategories($conn);
     
     $nome = readline("Nome da Categoria a Adicionar: ");
@@ -39,15 +38,11 @@ function createCategory($conn){
     }
 
     if(in_array(strtolower($nome), $nomes)){
-        echo "Erro: Categoria não adicionada à Base de Dados.\n";
-        echo "Categoria '$nome' já existe na Base de Dados (ID:<" . array_search(strtolower($nome), $nomes) . ">)\n";
+        echo "Erro: Categoria '$nome' já existe na Base de Dados (ID:<" . array_search(strtolower($nome), $nomes) . ">)\n";
         return;
     }
     
-    // Criar comando SQL para inserir
     $query = "INSERT INTO categorias (nome) VALUES ('$nome');";
-
-    //Executar o comando
     echo mysqli_query($conn, $query)
     ? "Categoria '$nome' adicionada com sucesso. (ID:<" . mysqli_insert_id($conn) . ">)\n" 
     : "Erro a adicionar Categoria.\n";
@@ -68,21 +63,26 @@ function createCategoryRecipes($conn){
     }
 
     // Listar as categorias que a receita (JÁ TEM ASSOCIADAS)
-    $already_assoc_cats = listRecipeCategories($conn, true, $id_recipe);
+    // $already_assoc_categs = listRecipeCategories($conn, true, $id_recipe);
+    $already_assoc_categs = listCategoriesInRecipe($conn, $id_recipe, false);
 
     // Listar as categorias possiveis de adicionar (NÃO TEM ASSOCIADAS)
-    $available_cats = listRecipeCategories($conn, false, $id_recipe);
-
+    // $available_categs = listRecipeCategories($conn, false, $id_recipe);
+    $available_categs = listCategoriesNotInRecipe($conn, $id_recipe);
+    
+    if(count($available_categs) == 0)
+        return;
+    
     $id_category = readline("Id da categoria a associar à receita: ");
     
-    // Verificar se jhá se encontra associada à receita
-    if(in_array($id_category ,$already_assoc_cats)){
+    // Verificar se já se encontra associada à receita
+    if(in_array($id_category ,$already_assoc_categs)){
         echo "Erro: Categoria com o Id<$id_category> já se encontra associada à receita.\n";
         return;
     }
 
     // Verificar se o $id_category pertence à lista de categorias por associar à receita, caso contrário não existe
-    if(!in_array($id_category ,$available_cats)){
+    if(!in_array($id_category ,$available_categs)){
         echo "Erro: Categoria com o Id<$id_category> não existe.\n";
         return;
     }
@@ -102,7 +102,7 @@ function createCategoryRecipes($conn){
  *      (usado em funções onde se pede ao user para colocar id)
  */
 function listRecipes($conn, $show_description = true){
-    // Criar comando SQL
+    $recipe_ids = [];
     $query = "SELECT * FROM receitas;";
 
     $resultado = mysqli_query($conn, $query);
@@ -115,8 +115,9 @@ function listRecipes($conn, $show_description = true){
         echo $linha["doses"] . " doses |\n";
         echo $show_description ? "Descrição:\n" . $linha["descricao"] . "\n\n" : "";
         echo $show_description ?"* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n\n" : "";
+        $recipe_ids[] = $linha["id"];
     }
-
+    return $recipe_ids;
     //TODO (Optional): Check better formatting for descricao, possibly \t for each \n
 }
 
@@ -162,22 +163,15 @@ function listRecipesInCategory($conn){
     }
 }
 
-// (OPTIONAL) Listar as categorias que a receita (JÁ TEM ASSOCIADAS) | (NÃO TEM ASSOCIADAS)
+// (DEPRECATED) Listar as categorias que a receita (JÁ TEM ASSOCIADAS) | (NÃO TEM ASSOCIADAS)
 // Retorna Lista de IDs dessa mesma lista
 function listRecipeCategories($conn, $associated_with_recipe, $id_recipe = 0){
     $categories_assoc = [];
     $categories_not_assoc = [];
-    // to use on menu
-    if($id_recipe == 0){
-        $id_recipe = readline("Id da Receita para adicionar categorias: ");
-        $input_assoc = strtolower(readline("Listar Categorias Associadas à Receita? (S/N) : "));
-        if ($input_assoc != "s" && $input_assoc != "n"){
-            echo "Introduza um input válido. (S/N)";
-            return;
-        }
-        $associated_with_recipe = ($input_assoc) == "s";
-    }
     
+    if($id_recipe == 0)
+        return;
+
     // associadas
     $query = "SELECT categorias.id, categorias.nome 
     FROM categorias_receitas 
@@ -189,7 +183,7 @@ function listRecipeCategories($conn, $associated_with_recipe, $id_recipe = 0){
     //save the associated indexes
     $resultado = mysqli_query($conn, $query);
     if(mysqli_num_rows($resultado) == 0 && $associated_with_recipe){
-        echo "  Não existem categorias associadas a esta receita.\n";
+        echo $associated_with_recipe ? "Não existem categorias associadas a esta receita.\n" : "";
     }
     else{
         while($linha = mysqli_fetch_assoc($resultado)){
@@ -210,6 +204,53 @@ function listRecipeCategories($conn, $associated_with_recipe, $id_recipe = 0){
     }
 
     return $associated_with_recipe ? $categories_assoc : $categories_not_assoc;
+}
+
+// lista as categorias associadas à receita
+function listCategoriesInRecipe($conn, $id_recipe, $print = true){
+    $categories_assoc = [];
+
+    $query = "SELECT categorias.id, categorias.nome 
+    FROM categorias_receitas 
+    INNER JOIN categorias 
+    ON categorias_receitas.id_categoria = categorias.id 
+    WHERE categorias_receitas.id_receita = $id_recipe;";
+
+    $resultado = mysqli_query($conn, $query);
+
+    if(mysqli_num_rows($resultado) == 0)
+        echo $print ? "Não existem categorias associadas a esta receita.\n" : "";
+
+    while($linha = mysqli_fetch_assoc($resultado)){
+        $categories_assoc[] = $linha["id"];
+        echo $print ? "  | ID " . $linha["id"] . " | Nome: " . $linha["nome"] . " |\n" : "";
+    }
+
+    return $categories_assoc;
+}
+
+// lista as categorias não associadas à receita
+function listCategoriesNotInRecipe($conn, $id_recipe, $print = true){
+    $categories_not_assoc = [];
+
+    $query = "SELECT categorias.id, categorias.nome 
+    FROM categorias 
+    LEFT JOIN categorias_receitas 
+    ON categorias_receitas.id_categoria = categorias.id
+    AND categorias_receitas.id_receita = $id_recipe
+    WHERE categorias_receitas.id_receita IS NULL;";
+    
+    $resultado = mysqli_query($conn, $query);
+
+    if(mysqli_num_rows($resultado) == 0)
+        echo $print ? "Não existem categorias por associar a esta receita.\n" : "";
+    
+    while($linha = mysqli_fetch_assoc($resultado)){
+        $categories_not_assoc[]= $linha["id"];
+        echo $print ? "  | ID " . $linha["id"] . " | Nome '" . $linha["nome"] . "' |\n" : "";
+    }
+
+    return $categories_not_assoc;
 }
 
 // ****************************************| UPDATE |****************************************
@@ -313,14 +354,24 @@ function deleteRecipe($conn){
 // Apaga categorias_receitas [*]
 // (Desassociar categorias a uma receita)
 function deleteCategoryRecipes($conn){
-    listRecipes($conn, false);
+    $recipe_ids = listRecipes($conn, false);
     $id_recipe = readline("Id da Receita para adicionar categorias: ");
-    $associated_cats = listRecipeCategories($conn, true, $id_recipe);
+
+    if(!in_array($id_recipe, $recipe_ids)){
+        echo "Erro: Receita inexistente.\n";
+        return;
+    }
+
+    // $associated_categs = listRecipeCategories($conn, true, $id_recipe);
+    $associated_categs = listCategoriesInRecipe($conn, $id_recipe);
+
+    if(count($associated_categs) == 0)
+        return;
     
     $id_category = readline("Id da categoria a associar à receita: ");
     
     // Verificar se a categoria não se encontra associada à receita
-    if(!in_array($id_category ,$associated_cats)){
+    if(!in_array($id_category ,$associated_categs)){
         echo "Erro: Categoria com o Id<$id_category> não se encontra associada à receita.\n";
         return;
     }
