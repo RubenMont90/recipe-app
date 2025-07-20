@@ -164,7 +164,7 @@ function listRecipeCategories($conn, $associated_with_recipe, $id_recipe = 0){
     echo $associated_with_recipe ? "Categorias já associadas à receita:\n" : "";
     //save the associated indexes
     $resultado = mysqli_query($conn, $query);
-    if(mysqli_num_rows($resultado) == 0){
+    if(mysqli_num_rows($resultado) == 0 && $associated_with_recipe){
         echo "  Não existem categorias associadas a esta receita.\n";
     }
     else{
@@ -289,14 +289,22 @@ function deleteRecipe($conn){
 // Apaga categorias_receitas [*]
 // (Desassociar categorias a uma receita)
 function deleteCategoryRecipes($conn){
-    // listRecipes($conn, false);
-    // $id_recipe = readline("Id da Receita para adicionar categorias: ");
-    // $associated_cats = listRecipeCategories($conn, true, $id_recipe);
-
-    // $query = "SELECT * FROM categorias_receitas WHERE id = $id_recipe;";
-    // $resultado = mysqli_query($conn, $query);
-    // not implemented
-    echo "not implemented";
+    listRecipes($conn, false);
+    $id_recipe = readline("Id da Receita para adicionar categorias: ");
+    $associated_cats = listRecipeCategories($conn, true, $id_recipe);
+    
+    $id_category = readline("Id da categoria a associar à receita: ");
+    
+    // Verificar se a categoria não se encontra associada à receita
+    if(!in_array($id_category ,$associated_cats)){
+        echo "Erro: Categoria com o Id<$id_category> não se encontra associada à receita.\n";
+        return;
+    }
+    
+    $query = "DELETE FROM categorias_receitas WHERE id_receita = $id_recipe AND id_categoria = $id_category;";
+    echo mysqli_query($conn, $query)
+    ? "Categoria desassociada à receita com sucesso.\n" 
+    : "Erro a desassociar categoria à receita.\n";
 
 }
 
