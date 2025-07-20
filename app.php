@@ -54,7 +54,7 @@ function createCategory($conn){
 }
 
 // Cria categorias_receitas
-// (Associar categorias a uma receita)
+// (Associar categorias a uma receita) +++++++++++++++++++++++++++++++++++++++++ Remover a listagem de categorias associadas neste
 function createCategoryRecipes($conn){
     listRecipes($conn, false);
     $id_recipe = readline("Id da Receita para adicionar categorias: ");
@@ -132,10 +132,34 @@ function listCategories($conn, $print = true){
     return $categories;
 }
 
-// Lista todas as Receitas dada uma Categoria [*]
-function listRecipesInCategory(){
-    // TODO: IMPLEMENT
-    echo "Not Implemented yet";
+// Lista todas as Receitas dada uma Categoria
+function listRecipesInCategory($conn){
+    $categories = listCategories($conn);
+
+    $id_category = readline("Id da categoria para listar receitas: ");
+
+    if(!in_array($id_category, $categories)){
+        echo "Erro: Categoria inexistente.\n";
+        return;
+    }
+    
+    $query = "SELECT receitas.id as id, receitas.nome as nome
+    FROM categorias_receitas 
+    INNER JOIN categorias 
+    ON categorias_receitas.id_categoria = categorias.id 
+    INNER JOIN receitas 
+    ON categorias_receitas.id_receita = receitas.id 
+    WHERE categorias.id = $id_category;";
+    
+    $resultado = mysqli_query($conn, $query);
+    if(mysqli_num_rows($resultado) == 0){
+        echo "Erro: Não existem receitas nesta categoria.\n";
+        return;
+    }
+
+    while($linha = mysqli_fetch_assoc($resultado)){
+        echo "  | ID: " . $linha["id"] . " | Nome: " . $linha["nome"] . " |\n";
+    }
 }
 
 // (OPTIONAL) Listar as categorias que a receita (JÁ TEM ASSOCIADAS) | (NÃO TEM ASSOCIADAS)
@@ -170,7 +194,7 @@ function listRecipeCategories($conn, $associated_with_recipe, $id_recipe = 0){
     else{
         while($linha = mysqli_fetch_assoc($resultado)){
             $categories_assoc[] = $linha["id"];
-            echo $associated_with_recipe ? "  | ID " . $linha["id"] . " | Nome " . $linha["nome"] . " |\n" : "";
+            echo $associated_with_recipe ? "  | ID " . $linha["id"] . " | Nome: " . $linha["nome"] . " |\n" : "";
         }
     }
 
