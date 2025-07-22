@@ -734,5 +734,4 @@ function listRecipeWithIngredients($conn){
     return $recipe_ids;
 }
 
-
 ?>
