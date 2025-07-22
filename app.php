@@ -237,7 +237,9 @@ function updateRecipe($conn){
     $novo_nome = readline("Nome da Receita: ");
     $novo_descricao = readline("Descrição: ");
     $novo_tempo_confecao = readline("Tempo de Confeção (em minutos): ");
+
     $novo_doses = readline("Doses: ");
+
 
     // atualizar receita
     $query = "UPDATE receitas 
@@ -581,8 +583,6 @@ function createIngredientInRecipe($conn){
 
     //ler input quantidade
     $quantity = readline("Quantidade(numero): ");
-
-    //verificar numero
     if(!is_numeric($quantity)){
         echo "Erro: Neste campo apenas pode ser introduzidos números!\n";
         return;
@@ -601,10 +601,6 @@ function createIngredientInRecipe($conn){
 
 // FASE 6 - 6.3 - Atualizar quantidade/unidade de ingredientes de uma receita
 function updateIngredientInRecipe($conn){
-    // //TODO: Implement
-    // echo "not implemented";
-    // return;
-
     $recipe_ids = listRecipes($conn, false);
 
     $id_recipe = readline("Id da Receita a alterar: ");
@@ -615,21 +611,34 @@ function updateIngredientInRecipe($conn){
     }
     
     $ingrs_recipe = listIngredientsInRecipe($conn, $id_recipe);
-
+    
     $id_ingr_recipe = readline("Id do ingrediente a alterar: ");
 
     if(!in_array($id_ingr_recipe, $ingrs_recipe)){
-        echo "Erro: Id<$id_recipe> não existe na Base de dados.\n";
+        echo "Erro: Ingrediente de id<$id_ingr_recipe> não existe na Base de dados, ou não pertence à receita selecionada.\n";
         return;
     }
 
     // pedir nova quantidade / unidade
+    $quantity = readline("Quantidade(numero): ");
+    if(!is_numeric($quantity)){
+        echo "Erro: Neste campo apenas pode ser introduzidos números!\n";
+        return;
+    }
 
-    // SQL ara editar
+    //ler input unidade
+    $measure = readline("Unidade(texto): ");
 
+    $query = "UPDATE ingredientes_receitas 
+    SET quantidade = $quantity, unidade = '$measure'
+    WHERE id = $id_ingr_recipe;";
+
+    echo mysqli_query($conn, $query)
+    ? "Ingrediente (ID:<$id_ingr_recipe>) atualizado com sucesso.\n" 
+    : "Erro a atualizar a informação do ingrediente da receita.\n";
 }
 
-// EXTRA
+// EXTRA - retorna ids de ingredientes_receitas
 function listIngredientsInRecipe($conn, $id_recipe){
 
     $ingrs_id_in_recipe = [];
@@ -649,11 +658,10 @@ function listIngredientsInRecipe($conn, $id_recipe){
         }
         echo "| Id: " . ($linha["id"] < 10 ? "0" : "") . $linha["id"] . " | " . $linha["nome_ingrediente"];
         echo " | Quantidade: " . $linha["quantidade"] . " | Unidade: " . $linha["unidade"]. "\n";
-        $ingrs_id_in_recipe[] = $linha["nome_ingrediente"];
+        $ingrs_id_in_recipe[] = $linha["id"];
     }
 
     return $ingrs_id_in_recipe;
-
 }
 
 
