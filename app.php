@@ -718,17 +718,19 @@ function listRecipeWithIngredients($conn){
 
     $first = true;
     while($linha = mysqli_fetch_assoc($resultado)){
-        //echo $first ? "| ID " . $linha["id_receita"] : "";
         echo $first ? "| Nome: '" . $linha["nome"] . "' | " : "";
         echo $first ? "Tempo: " . $linha["tempo_confecao"] . " min | " : "";
         echo $first ? $linha["doses"] . " doses |\n" : "";
-        echo $first ? "Descrição:\n" . $linha["descricao"] . "\n" : "";
-        echo $first ? "Ingredientes:\n" : "";
-        //echo "a" . $linha["id_ing_receita"] . "\n";
-        echo "> " . $linha["nome_ingrediente"] . " | Quantidade: " . ($linha["quantidade"] == 0 ? "": $linha["quantidade"] . " ")  . $linha["unidade"]. " |\n";
+        if($first){
+            $description_lines = explode("\n", $linha["descricao"]);
+            echo "| Descrição |\n";
+            foreach($description_lines as $desc_line)
+                echo "| $desc_line\n";
+        }
+        echo $first ? "| Ingredientes |\n" : "";
+        echo "| " . $linha["nome_ingrediente"] . " | Quantidade: " . ($linha["quantidade"] == 0 ? "": $linha["quantidade"] . " ")  . $linha["unidade"]. " |\n";
         $first = false;
     }
-
     return $recipe_ids;
 }
 
