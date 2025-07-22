@@ -301,18 +301,19 @@ function deleteRecipe($conn){
     ? "Receita (ID:<$id>) eliminada de <ingredientes_receitas> com sucesso.\n" 
     : "Erro a eliminar a receita de <ingredientes_receitas>.\n";
     
+    // CÓDIGO REMOVIDO - um Ingrediente pode existir mesmo não ligado a uma receita.
     // procurar nos <ingredientes_receitas> por ingrediente da receita e eliminar de <ingredientes>
-    foreach($ingredientes as $ingrediente){
-        $query = "SELECT * FROM ingredientes_receitas WHERE nome_ingrediente = '$ingrediente';";
-        $result = mysqli_query($conn, $query);
-        if(mysqli_num_rows($result) == 0){
-            // eliminar o ingrediente em questão dos ingredientes_receitas (não está presente em mais receitas)
-            $query = "DELETE FROM ingredientes WHERE nome = '$ingrediente';";
-            echo mysqli_query($conn, $query)
-            ? "Ingrediente (Nome:<$ingrediente>) eliminado de <ingredientes> com sucesso.\n" 
-            : "Erro a eliminar o ingrediente de <ingredientes>.\n";
-        }
-    }
+    // foreach($ingredientes as $ingrediente){
+    //     $query = "SELECT * FROM ingredientes_receitas WHERE nome_ingrediente = '$ingrediente';";
+    //     $result = mysqli_query($conn, $query);
+    //     if(mysqli_num_rows($result) == 0){
+    //         // eliminar o ingrediente em questão dos ingredientes_receitas (não está presente em mais receitas)
+    //         $query = "DELETE FROM ingredientes WHERE nome = '$ingrediente';";
+    //         echo mysqli_query($conn, $query)
+    //         ? "Ingrediente (Nome:<$ingrediente>) eliminado de <ingredientes> com sucesso.\n" 
+    //         : "Erro a eliminar o ingrediente de <ingredientes>.\n";
+    //     }
+    // }
 }
 
 // FASE 5 - 5.2.2 - Desassociar receitas a categorias 
@@ -664,19 +665,71 @@ function listIngredientsInRecipe($conn, $id_recipe){
     return $ingrs_id_in_recipe;
 }
 
-
 // FASE 6 - 6.4 - Remover ingredientes de uma receita
 function deleteIngredientFromRecipe($conn){
-    //TODO: Implement
-    echo "not implemented";
-    return;
+    
+    $recipe_ids = listRecipes($conn, false);
+
+    if(count($recipe_ids) > 0){
+        echo "Não existem receitas na Base de dados.\n";
+        return;
+    }
+
+    $id_recipe = readline("Id da Receita para remover ingrediente: ");
+
+    if(!in_array($id_recipe, $recipe_ids)){
+        echo "Erro: Id<$id_recipe> não existe na Base de dados.\n";
+        return;
+    }
+    
+    $ingrs_recipe = listIngredientsInRecipe($conn, $id_recipe);
+    
+    $id_ingr_recipe = readline("Id do ingrediente a remover: ");
+
+    if(!in_array($id_ingr_recipe, $ingrs_recipe)){
+        echo "Erro: Ingrediente de id<$id_ingr_recipe> não existe na Base de dados, ou não pertence à receita selecionada.\n";
+        return;
+    }
+
+    $query = "DELETE FROM ingredientes_receitas WHERE id = $id_ingr_recipe;";
+    echo mysqli_query($conn, $query)
+    ? "Ingrediente (Id:<$id_ingr_recipe>) eliminado da receita (Id:<$id_recipe>) com sucesso.\n" 
+    : "Erro a eliminar ingrediente associado à receita.\n";
 }
 
 // FASE 6 - 6.5 - Mostrar os detalhes completos de uma receita (incluindo ingredientes e quantidades)
 function listRecipeWithIngredients($conn){
-    //TODO: Implement
-    echo "not implemented";
-    return;
+
+    $recipe_ids = listRecipes($conn, false);
+
+    $id_recipe = readline("Id da Receita: ");
+
+    if(!in_array($id_recipe, $recipe_ids)){
+        echo "Erro: Id<$id_recipe> não existe na Base de dados.\n";
+        return;
+    }
+
+    $query = "SELECT receitas.id as id_receita, nome, descricao, tempo_confecao, doses, nome_ingrediente, quantidade, unidade FROM receitas 
+    INNER JOIN ingredientes_receitas 
+    ON receitas.id = ingredientes_receitas.id_receita 
+    WHERE receitas.id = $id_recipe;";
+
+    $resultado = mysqli_query($conn, $query);
+
+    $first = true;
+    while($linha = mysqli_fetch_assoc($resultado)){
+        //echo $first ? "| ID " . $linha["id_receita"] : "";
+        echo $first ? "| Nome: '" . $linha["nome"] . "' | " : "";
+        echo $first ? "Tempo: " . $linha["tempo_confecao"] . " min | " : "";
+        echo $first ? $linha["doses"] . " doses |\n" : "";
+        echo $first ? "Descrição:\n" . $linha["descricao"] . "\n" : "";
+        echo $first ? "Ingredientes:\n" : "";
+        //echo "a" . $linha["id_ing_receita"] . "\n";
+        echo "> " . $linha["nome_ingrediente"] . " | Quantidade: " . ($linha["quantidade"] == 0 ? "": $linha["quantidade"] . " ")  . $linha["unidade"]. " |\n";
+        $first = false;
+    }
+
+    return $recipe_ids;
 }
 
 
