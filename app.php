@@ -1,6 +1,6 @@
 <?php
 
-/* FASE 5: Gestão de Categorias e Associação Receita-Categoria */
+/* FASE 6: Gestão de Ingredientes e Composição das Receitas */
 $conn = connectDB('localhost', 'root', '', 'db_recipes');
 shorterMenu($conn);
 mysqli_close($conn);
@@ -237,7 +237,9 @@ function updateRecipe($conn){
     $novo_nome = readline("Nome da Receita: ");
     $novo_descricao = readline("Descrição: ");
     $novo_tempo_confecao = readline("Tempo de Confeção (em minutos): ");
+
     $novo_doses = readline("Doses: ");
+
 
     // atualizar receita
     $query = "UPDATE receitas 
@@ -384,6 +386,24 @@ function menu($conn){
         case 9:
             listRecipesInCategory($conn);
             break;
+        case 10:
+            listIngredients($conn);
+            break;
+        case 11:
+            createIngredient($conn);
+            break;
+        case 12:
+            createIngredientInRecipe($conn);
+            break;
+        case 13:
+            updateIngredientInRecipe($conn);
+            break;
+        case 14:
+            deleteIngredientFromRecipe($conn);
+            break;
+        case 15:
+            listRecipeWithIngredients($conn);
+            break;
         default:
             echo "\nERRO: Opção Inválida!\n";
             break;
@@ -416,22 +436,31 @@ function shorterMenu($conn){
 function printMenu(){
     echo "\n* * * * * * * | Escolha uma opção | * * * * * * *\n";
     echo "*\t\t\t\t\t\t*\n";
-    echo "*  0 => Sair do Programa\t\t\t*\n";
+    echo "*   0 => Sair do Programa\t\t\t*\n";
     echo "*\t\t\t\t\t\t*\n";
     echo "* * * * * * * * * | Fase  4 | * * * * * * * * * *\n";
     echo "*\t\t\t\t\t\t*\n";
-    echo "*  1 => Criar Novas Receitas \t\t\t*\n";
-    echo "*  2 => Listar todas as Receitas\t\t*\n";
-    echo "*  3 => Atualizar receitas existentes\t\t*\n";
-    echo "*  4 => Apagar receitas\t\t\t\t*\n";
+    echo "*   1 => Criar Novas Receitas \t\t\t*\n";
+    echo "*   2 => Listar todas as Receitas\t\t*\n";
+    echo "*   3 => Atualizar receitas existentes\t\t*\n";
+    echo "*   4 => Apagar receitas\t\t\t*\n";
     echo "*\t\t\t\t\t\t*\n";
     echo "* * * * * * * * * | Fase  5 | * * * * * * * * * *\n";
     echo "*\t\t\t\t\t\t*\n";
-    echo "*  5 => Criar Categorias\t\t\t*\n";
-    echo "*  6 => Listar Categorias\t\t\t*\n";
-    echo "*  7 => Associar Receitas a Categorias\t\t*\n";
-    echo "*  8 => Desassociar Receitas a Categorias\t*\n";
-    echo "*  9 => Listar Receitas por Categoria\t\t*\n";
+    echo "*   5 => Criar Categorias\t\t\t*\n";
+    echo "*   6 => Listar Categorias\t\t\t*\n";
+    echo "*   7 => Associar Receitas a Categorias\t\t*\n";
+    echo "*   8 => Desassociar Receitas a Categorias\t*\n";
+    echo "*   9 => Listar Receitas por Categoria\t\t*\n";
+    echo "*\t\t\t\t\t\t*\n";
+    echo "* * * * * * * * * | Fase  6 | * * * * * * * * * *\n";
+    echo "*\t\t\t\t\t\t*\n";
+    echo "*  10 => Listar Ingredientes\t\t\t*\n";
+    echo "*  11 => Adicionar Ingredientes\t\t\t*\n";
+    echo "*  12 => Associar Ingredientes a uma Receita\t*\n";
+    echo "*  13 => Atualizar Ingrediente da Receita\t*\n";
+    echo "*  14 => Remover Ingrediente de uma Receita\t*\n";
+    echo "*  15 => Mostrar Detalhes de uma Receita\t*\n";
     echo "*\t\t\t\t\t\t*\n";
     echo "* * * * * * * * * * * * * * * * * * * * * * * * *\n";
 }
@@ -485,6 +514,169 @@ function listRecipeCategories($conn, $associated_with_recipe, $id_recipe = 0){
     }
 
     return $associated_with_recipe ? $categories_assoc : $categories_not_assoc;
+}
+
+// ****************************************| FASE 6 |****************************************
+
+// FASE 6 - 6.1.1 - Listar todos os Ingredientes
+function listIngredients($conn){
+    $ingredient_names = [];
+    $query = "SELECT nome FROM ingredientes;";
+
+    $resultado = mysqli_query($conn, $query);
+
+    echo "\nIngredientes:\n";
+    while($linha = mysqli_fetch_assoc($resultado)){
+        echo "  " . $linha["nome"] . "\n";
+        $ingredient_names[] = $linha["nome"];
+    }
+    return $ingredient_names;
+}
+
+// FASE 6 - 6.1.2 - Adicionar ingredientes
+// Cria novo ingrediente (campos: nome)
+function createIngredient($conn){
+    $nome = readline("Nome do Ingrediente: ");
+
+    $query = "INSERT INTO ingredientes (nome) VALUES ('$nome');";
+
+    // listar ingredientes
+    $ingredients = listIngredients($conn);
+
+    if(in_array($nome, $ingredients)){
+        echo "Erro: <$nome> já existe na Base de dados.\n";
+        return;
+    }
+
+    $resultado = mysqli_query($conn, $query);
+    if(mysqli_num_rows($resultado) == 0){
+        echo "Erro: Ingrediente não adicionado.\n";
+        return;
+    }
+}
+
+// FASE 6 - 6.2 - Associar ingredientes a receitas com quantidade e unidade
+function createIngredientInRecipe($conn){
+    //listar receitas
+    $recipe_ids = listRecipes($conn, false);
+
+    //ler input id receita
+    $id_recipe = readline("Id da Receita: ");
+
+    // verificar se id de receita existe
+    if(!in_array($id_recipe, $recipe_ids)){
+        echo "Erro: Id<$id_recipe> não existe.\n";
+        return;
+    }
+
+    //listar ingredientes
+    $ingredients = listIngredients($conn);
+
+    //ler input nome ingrediente
+    $name = readline("Nome do Ingrediente: ");
+
+    // verificar se o ingrediente existe
+    if(!in_array($name, $ingredients)){
+        echo "Erro: Ingrediente: <$name> não existe na Base de dados.\n";
+        return;
+    }
+
+    //ler input quantidade
+    $quantity = readline("Quantidade(numero): ");
+    if(!is_numeric($quantity)){
+        echo "Erro: Neste campo apenas pode ser introduzidos números!\n";
+        return;
+    }
+
+    //ler input unidade
+    $measure = readline("Unidade(texto): ");
+
+    $query = "INSERT INTO ingredientes_receitas (nome_ingrediente, id_receita, quantidade, unidade) 
+              VALUES ('$name', $id_recipe, $quantity, '$measure');";
+    
+    echo mysqli_query($conn, $query)
+    ? "Ingrediente '$name' adicionado com sucesso à receita de Id<$id_recipe>)\n" 
+    : "Erro a adicionar Receita.\n";
+}
+
+// FASE 6 - 6.3 - Atualizar quantidade/unidade de ingredientes de uma receita
+function updateIngredientInRecipe($conn){
+    $recipe_ids = listRecipes($conn, false);
+
+    $id_recipe = readline("Id da Receita a alterar: ");
+
+    if(!in_array($id_recipe, $recipe_ids)){
+        echo "Erro: Id<$id_recipe> não existe na Base de dados.\n";
+        return;
+    }
+    
+    $ingrs_recipe = listIngredientsInRecipe($conn, $id_recipe);
+    
+    $id_ingr_recipe = readline("Id do ingrediente a alterar: ");
+
+    if(!in_array($id_ingr_recipe, $ingrs_recipe)){
+        echo "Erro: Ingrediente de id<$id_ingr_recipe> não existe na Base de dados, ou não pertence à receita selecionada.\n";
+        return;
+    }
+
+    // pedir nova quantidade / unidade
+    $quantity = readline("Quantidade(numero): ");
+    if(!is_numeric($quantity)){
+        echo "Erro: Neste campo apenas pode ser introduzidos números!\n";
+        return;
+    }
+
+    //ler input unidade
+    $measure = readline("Unidade(texto): ");
+
+    $query = "UPDATE ingredientes_receitas 
+    SET quantidade = $quantity, unidade = '$measure'
+    WHERE id = $id_ingr_recipe;";
+
+    echo mysqli_query($conn, $query)
+    ? "Ingrediente (ID:<$id_ingr_recipe>) atualizado com sucesso.\n" 
+    : "Erro a atualizar a informação do ingrediente da receita.\n";
+}
+
+// EXTRA - retorna ids de ingredientes_receitas
+function listIngredientsInRecipe($conn, $id_recipe){
+
+    $ingrs_id_in_recipe = [];
+
+    $query = "SELECT nome, ingredientes_receitas.id, id_receita, nome_ingrediente, quantidade, unidade FROM receitas 
+    INNER JOIN ingredientes_receitas 
+    ON receitas.id = ingredientes_receitas.id_receita 
+    WHERE id_receita = $id_recipe;";
+
+    $resultado = mysqli_query($conn, $query);
+
+    $first_iteration = true;
+    while($linha = mysqli_fetch_assoc($resultado)){
+        if($first_iteration){
+            $first_iteration = false;
+            echo "\nIngredientes de '".$linha["nome"]."':\n";
+        }
+        echo "| Id: " . ($linha["id"] < 10 ? "0" : "") . $linha["id"] . " | " . $linha["nome_ingrediente"];
+        echo " | Quantidade: " . $linha["quantidade"] . " | Unidade: " . $linha["unidade"]. "\n";
+        $ingrs_id_in_recipe[] = $linha["id"];
+    }
+
+    return $ingrs_id_in_recipe;
+}
+
+
+// FASE 6 - 6.4 - Remover ingredientes de uma receita
+function deleteIngredientFromRecipe($conn){
+    //TODO: Implement
+    echo "not implemented";
+    return;
+}
+
+// FASE 6 - 6.5 - Mostrar os detalhes completos de uma receita (incluindo ingredientes e quantidades)
+function listRecipeWithIngredients($conn){
+    //TODO: Implement
+    echo "not implemented";
+    return;
 }
 
 
