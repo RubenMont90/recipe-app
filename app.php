@@ -109,17 +109,21 @@ function listRecipes($conn, $show_description = true){
     $query = "SELECT * FROM receitas;";
 
     $resultado = mysqli_query($conn, $query);
-
-    echo $show_description ? "\n\n* * * * * * * * * * * * * * * * * * | RECEITAS | * * * * * * * * * * * * * * * * * * *\n\n" : "";
+    echo $show_description ? "\n\n* * * * * * * * * * * * * * * * * * | RECEITAS | * * * * * * * * * * * * * * * * * * *\n" : "";
     while($linha = mysqli_fetch_assoc($resultado)){
-        echo "| ID " . $linha["id"] . " | ";
-        echo "Nome: '" . $linha["nome"] . "' | ";
-        echo "Tempo: " . $linha["tempo_confecao"] . " min | ";
+        echo "\n| ID " . $linha["id"] . " | ";
+        echo "NOME: '" . $linha["nome"] . "' | ";
+        echo "TEMPO: " . $linha["tempo_confecao"] . " min | ";
         echo $linha["doses"] . " doses |\n";
-        echo $show_description ? "Descrição:\n" . $linha["descricao"] . "\n\n" : "";
-        echo $show_description ?"* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n\n" : "";
+        // echo $show_description ? "| DESCRIÇÃO:\n" . $linha["descricao"] . "\n\n" : "";
+        $description_lines = explode("\n", $linha["descricao"]);
+        echo "| DESCRIÇÃO:\n";
+        foreach($description_lines as $desc_line)
+            echo "| $desc_line\n";
+        echo $show_description ?"\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n" : "";
         $recipe_ids[] = $linha["id"];
     }
+    echo $show_description ? "\n" : "";
     return $recipe_ids;
     //TODO (Optional): Check better formatting for descricao, possibly \t for each \n
 }
@@ -134,6 +138,7 @@ function listCategories($conn, $print = true){
         echo $print ? "| ID " . $linha["id"] . " | Nome '" . $linha["nome"] . "' |\n": "";
         $categories[] = $linha["id"];
     }
+    echo "\n";
     return $categories;
 }
 
@@ -156,6 +161,16 @@ function listRecipesInCategory($conn){
     INNER JOIN receitas 
     ON categorias_receitas.id_receita = receitas.id 
     WHERE categorias.id = $id_category;";
+
+    /*  PARA TODAS AS RECEITAS MAS POR CATEGORIA
+            SELECT categorias.nome, receitas.nome, descricao, tempo_confecao, doses
+            FROM categorias_receitas 
+            INNER JOIN categorias 
+            ON categorias_receitas.id_categoria = categorias.id 
+            INNER JOIN receitas 
+            ON categorias_receitas.id_receita = receitas.id
+            ORDER BY categorias.id ASC;
+    */
     
     $resultado = mysqli_query($conn, $query);
     if(mysqli_num_rows($resultado) == 0){
@@ -427,7 +442,7 @@ function menu($conn, $phase = 0){
     return $menu_opt;
 }
 
-// Menu com todas as operações
+// Handler Menu Secundário (com todas as operações)
 function tempMenu($conn, $phase = 0){
     do{
         printSelectiveMenu($phase);
@@ -457,10 +472,10 @@ function tempMenu($conn, $phase = 0){
                 case 14: deleteIngredientFromRecipe($conn); break;
                 case 15: listRecipeWithIngredients($conn); break;
                 /*******************| PHASE 7 |*******************/
-                case 16: listRecipesInCategoryByName($conn); break;
-                case 17: listAllRecipesWithIngredient($conn); break;
-                case 18: listCompleteRecipe($conn); break;
-                case 19: searchRecipeByTitle($conn); break;
+                case 16: listRecipesInCategoryByName($conn); break;     //DONE
+                case 17: listAllRecipesWithIngredient($conn); break;    
+                case 18: listCompleteRecipe($conn); break;              //DONE
+                case 19: searchRecipeByTitle($conn); break;             
                 /*******************| Default |*******************/
                 default: echo "\nERRO: Opção Inválida!\n"; $error = true; break;
             }
@@ -507,7 +522,7 @@ function tempMenu($conn, $phase = 0){
     }while($menu_opt != 0 && $error);
 }
 
-// Menu Inicial
+// Handler Menu Inicial
 function shorterMenu($conn){
     do{
         printStartMenu();
@@ -566,6 +581,7 @@ function printMenu(){
     echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n";
 }
 
+// Imprime Menu Inicial
 function printStartMenu(){
     echo "\n* * * * | Menu  Inicial | * * * *\n";
     echo "*\t\t\t\t*\n";
@@ -581,7 +597,7 @@ function printStartMenu(){
     echo "* * * * * * * * * * * * * * * * *\n";
 }
 
-// Imprime vários Menus
+// Imprime Menus Secundários seletivos
 function printSelectiveMenu($phase){
     echo "\n* * * * * * * * * | Menu Secundário | * * * * * * * * * *\n";
     echo "*\t\t\t\t\t\t\t*\n";
@@ -964,9 +980,53 @@ function listAllRecipesWithIngredient($conn){
 // Dado um ID ou nome da receita, apresentar: (Título | Etapas de preparação (descrição) | Ingredientes, quantidades e unidades)
 //// O MESMO QUE 6.5 só que dá por pedir por nome?
 function listCompleteRecipe($conn){
-    echo "not implemented";
-    return;
-    
+
+    $recipe_ids = listRecipes($conn, false);
+
+    $recipe_input = readline("Insira Id/Nome da receita: ");
+
+    if(is_numeric($recipe_input)){
+        $id_recipe = $recipe_input;        
+        if(!in_array($id_recipe, $recipe_ids)){
+            echo "Erro: Receita Id<$id_recipe> não existe na Base de dados.\n";
+            return;
+        }
+    }
+    else{
+        $query = "SELECT id FROM receitas WHERE nome = '$recipe_input';";
+        $resultado = mysqli_query($conn, $query);
+        if(mysqli_num_rows($resultado) == 0){
+            echo "Erro: Receita inexistente.\n";
+            return;
+        }
+        $info = mysqli_fetch_assoc($resultado);
+        $id_recipe = $info["id"];
+    }
+
+    $query = "SELECT receitas.id as id_receita, nome, descricao, tempo_confecao, doses, nome_ingrediente, quantidade, unidade FROM receitas 
+    INNER JOIN ingredientes_receitas 
+    ON receitas.id = ingredientes_receitas.id_receita 
+    WHERE receitas.id = $id_recipe;";
+
+    $resultado = mysqli_query($conn, $query);
+
+    $first = true;
+    while($linha = mysqli_fetch_assoc($resultado)){
+        echo $first ? "| NOME: '" . $linha["nome"] . "' | " : "";
+        echo $first ? "TEMPO: " . $linha["tempo_confecao"] . " min | " : "";
+        echo $first ? $linha["doses"] . " doses |\n" : "";
+        if($first){
+            $description_lines = explode("\n", $linha["descricao"]);
+            echo "| DESCRIÇÃO:\n";
+            foreach($description_lines as $desc_line)
+                echo "| $desc_line\n";
+        }
+        echo $first ? "| INGREDIENTES:\n" : "";
+        echo "| " . $linha["nome_ingrediente"] . " | QUANTIDADE: " . ($linha["quantidade"] == 0 ? "": $linha["quantidade"] . " ")  . $linha["unidade"]. " |\n";
+        $first = false;
+    }
+
+    return $recipe_ids;
 }
 
 
