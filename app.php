@@ -922,8 +922,6 @@ function listRecipeWithIngredients($conn){
 // Dado um nome ou ID de categoria, listar todas as receitas associadas
 //// O MESMO QUE 5.3 só que dá por pedir por nome?
 function listRecipesInCategoryByName($conn){
-    // echo "not implemented";
-    // return;
 
     $categories = listCategories($conn);
 
