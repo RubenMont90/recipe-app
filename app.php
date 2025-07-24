@@ -164,7 +164,6 @@ function createIngredientInRecipe($conn){
     : "Erro a adicionar Receita.\n";
 }
 
-
 // ****************************************| READ |****************************************
 
 // FASE 4 - 4.2 - Listar todas as receitas
@@ -211,7 +210,7 @@ function listCategories($conn, $print = true){
     return $categories;
 }
 
-// FASE 5 - 5.3 - Consultar receitas filtradas por categoria
+// FASE 5 - 5.3 - Consultar receitas filtradas por categoria ----- ALTERAR PARA LISTAR TODOS MAS POR CATEGORIAS
 // Lista todas as Receitas dada uma Categoria
 function listRecipesInCategory($conn){
     $categories = listCategories($conn);
@@ -740,6 +739,32 @@ function deleteIngredientFromRecipe($conn){
 
 // ****************************************| PROGRAM |****************************************
 
+// Abre conexão com uma Base de Dados
+function connectDB($hostname, $username, $password, $database){
+    $conn = mysqli_connect($hostname, $username, $password, $database);
+    echo $conn ? "\n> Ligação à base de dados efetuada com sucesso!\n" : "\n> Erro na conexão com a base de dados!\n";
+    return $conn;
+}
+
+// Handler Menu Inicial
+function goToStartMenu($conn){
+    do{
+        printStartMenu();
+        $opt = readline("\n> ");
+        $opt = strtolower($opt);
+        switch($opt){
+            case "1": goToSecondaryMenu($conn); break;
+            case "4": goToSecondaryMenu($conn, intval($opt)); break;
+            case "5": goToSecondaryMenu($conn, intval($opt)); break;
+            case "6": goToSecondaryMenu($conn, intval($opt)); break;
+            case "7": goToSecondaryMenu($conn, intval($opt)); break;
+            case "0": break;
+            default: echo "\nERRO: Opção Inválida!\n"; break;
+        }
+    }while($opt != "0");
+    echo "< Sair do Programa >\n";
+}
+
 // Handler Menu Secundário (com todas as operações)
 function goToSecondaryMenu($conn, $phase = 0){
     do{
@@ -770,10 +795,10 @@ function goToSecondaryMenu($conn, $phase = 0){
                 case 14: deleteIngredientFromRecipe($conn); break;
                 case 15: listRecipeWithIngredients($conn); break;
                 /*******************| PHASE 7 |*******************/
-                case 16: listRecipesInCategoryByName($conn); break;     //DONE
+                case 16: listRecipesInCategoryByName($conn); break;
                 case 17: listAllRecipesWithIngredient($conn); break;    
-                case 18: listCompleteRecipe($conn); break;              //DONE
-                case 19: searchRecipesByTitle($conn); break;            //DONE
+                case 18: listCompleteRecipe($conn); break;
+                case 19: searchRecipesByTitle($conn); break;
                 /*******************| Default |*******************/
                 default: echo "\nERRO: Opção Inválida!\n"; $error = true; break;
             }
@@ -818,25 +843,6 @@ function goToSecondaryMenu($conn, $phase = 0){
             }
         }
     }while($menu_opt != 0 && $error);
-}
-
-// Handler Menu Inicial
-function goToStartMenu($conn){
-    do{
-        printStartMenu();
-        $opt = readline("\n> ");
-        $opt = strtolower($opt);
-        switch($opt){
-            case "1": goToSecondaryMenu($conn); break;
-            case "4": goToSecondaryMenu($conn, intval($opt)); break;
-            case "5": goToSecondaryMenu($conn, intval($opt)); break;
-            case "6": goToSecondaryMenu($conn, intval($opt)); break;
-            case "7": goToSecondaryMenu($conn, intval($opt)); break;
-            case "0": break;
-            default: echo "\nERRO: Opção Inválida!\n"; break;
-        }
-    }while($opt != "0");
-    echo "< Sair do Programa >\n";
 }
 
 // Imprime Menu Inicial
@@ -905,12 +911,7 @@ function printSecondaryMenu($phase){
     echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n";
 }
 
-// Abre conexão com uma Base de Dados
-function connectDB($hostname, $username, $password, $database){
-    $conn = mysqli_connect($hostname, $username, $password, $database);
-    echo $conn ? "\n> Ligação à base de dados efetuada com sucesso!\n" : "\n> Erro na conexão com a base de dados!\n";
-    return $conn;
-}
+// TODO: REFACTOR CODE 
 
 // ****************************************| DEPRECATED |****************************************
 
