@@ -1,6 +1,6 @@
 <?php
 
-/* FASE 6: Gestão de Ingredientes e Composição das Receitas */
+/* Funcionalidades de Pesquisa e Listagens */
 $conn = connectDB('localhost', 'root', '', 'db_recipes');
 shorterMenu($conn);
 mysqli_close($conn);
@@ -350,10 +350,10 @@ function deleteCategoryRecipes($conn){
 
 // ****************************************| PROGRAM |****************************************
 
-// Menu com todas as operações
-function menu($conn){
+// (DEPRECATED) Menu com todas as operações
+function menu($conn, $phase = 0){
     //do{
-    printMenu();
+    printSelectiveMenu($phase);
 
     $menu_opt = readline("\n> ");
 
@@ -405,6 +405,20 @@ function menu($conn){
         case 15:
             listRecipeWithIngredients($conn);
             break;
+            
+        case 16:
+            listRecipesInCategoryByName($conn);
+            break;
+        case 17:
+            listAllRecipesWithIngredient($conn);
+            break;
+        case 18:
+            listCompleteRecipe($conn);
+            break;
+        case 19:
+            searchRecipeByTitle($conn);
+            break;
+
         default:
             echo "\nERRO: Opção Inválida!\n";
             break;
@@ -413,57 +427,208 @@ function menu($conn){
     return $menu_opt;
 }
 
-// Menu mais curto
+// Menu com todas as operações
+function tempMenu($conn, $phase = 0){
+    do{
+        printSelectiveMenu($phase);
+        
+        $menu_opt = readline("\n> ");
+        $error = false;
+
+        if($phase == 0){
+            switch($menu_opt){
+                case 0: break;
+                /*******************| PHASE 4 |*******************/
+                case 1: createRecipe($conn); break;
+                case 2: listRecipes($conn); break;
+                case 3: updateRecipe($conn); break;
+                case 4: deleteRecipe($conn); break;
+                /*******************| PHASE 5 |*******************/
+                case 5: createCategory($conn); break;
+                case 6: listCategories($conn); break;
+                case 7: createCategoryRecipes($conn); break;
+                case 8: deleteCategoryRecipes($conn); break;
+                case 9: listRecipesInCategory($conn); break;
+                /*******************| PHASE 6 |*******************/
+                case 10: listIngredients($conn); break;
+                case 11: createIngredient($conn); break;
+                case 12: createIngredientInRecipe($conn); break;
+                case 13: updateIngredientInRecipe($conn); break;
+                case 14: deleteIngredientFromRecipe($conn); break;
+                case 15: listRecipeWithIngredients($conn); break;
+                /*******************| PHASE 7 |*******************/
+                case 16: listRecipesInCategoryByName($conn); break;
+                case 17: listAllRecipesWithIngredient($conn); break;
+                case 18: listCompleteRecipe($conn); break;
+                case 19: searchRecipeByTitle($conn); break;
+                /*******************| Default |*******************/
+                default: echo "\nERRO: Opção Inválida!\n"; $error = true; break;
+            }
+        } else if($phase == 4){
+            switch($menu_opt){
+                case 0: break;
+                case 1: createRecipe($conn); break;
+                case 2: listRecipes($conn); break;
+                case 3: updateRecipe($conn); break;
+                case 4: deleteRecipe($conn); break;
+                default: echo "\nERRO: Opção Inválida!\n"; $error = true; break;
+            }
+        } else if($phase == 5){
+            switch($menu_opt){
+                case 0: break;
+                case 5: createCategory($conn); break;
+                case 6: listCategories($conn); break;
+                case 7: createCategoryRecipes($conn); break;
+                case 8: deleteCategoryRecipes($conn); break;
+                case 9: listRecipesInCategory($conn); break;
+                default: echo "\nERRO: Opção Inválida!\n"; $error = true; break;
+            }
+        } else if($phase == 6){
+            switch($menu_opt){
+                case 0: break;
+                case 10: listIngredients($conn); break;
+                case 11: createIngredient($conn); break;
+                case 12: createIngredientInRecipe($conn); break;
+                case 13: updateIngredientInRecipe($conn); break;
+                case 14: deleteIngredientFromRecipe($conn); break;
+                case 15: listRecipeWithIngredients($conn); break;
+                default: echo "\nERRO: Opção Inválida!\n"; $error = true; break;
+            }
+        } else if($phase == 7){
+            switch($menu_opt){
+                case 0: break;
+                case 16: listRecipesInCategoryByName($conn); break;
+                case 17: listAllRecipesWithIngredient($conn); break;
+                case 18: listCompleteRecipe($conn); break;
+                case 19: searchRecipeByTitle($conn); break;
+                default: echo "\nERRO: Opção Inválida!\n"; $error = true; break;
+            }
+        }
+    }while($menu_opt != 0 && $error);
+}
+
+// Menu Inicial
 function shorterMenu($conn){
     do{
-        $opt = readline("\n| [M]enu | [S]air | > ");
+        printStartMenu();
+        $opt = readline("\n> ");
         $opt = strtolower($opt);
         switch($opt){
-            case "m":
-                $opt = menu($conn);
-                $opt = $opt == 0 ? "s" : "";
-                break;
-            case "s":
-                break;
-            default:
-                echo "\nERRO: Opção Inválida!\n";
-                break;
+            case "1": tempMenu($conn); break;
+            case "4": tempMenu($conn, intval($opt)); break;
+            case "5": tempMenu($conn, intval($opt)); break;
+            case "6": tempMenu($conn, intval($opt)); break;
+            case "7": tempMenu($conn, intval($opt)); break;
+            case "0": break;
+            default: echo "\nERRO: Opção Inválida!\n"; break;
         }
-    }while($opt != "s");
+    }while($opt != "0");
     echo "\n< Sair do Programa >\n";
 }
 
-// Imprime Menu
+// (DEPRECATED) Imprime Menu
 function printMenu(){
-    echo "\n* * * * * * * | Escolha uma opção | * * * * * * *\n";
-    echo "*\t\t\t\t\t\t*\n";
-    echo "*   0 => Sair do Programa\t\t\t*\n";
-    echo "*\t\t\t\t\t\t*\n";
-    echo "* * * * * * * * * | Fase  4 | * * * * * * * * * *\n";
-    echo "*\t\t\t\t\t\t*\n";
-    echo "*   1 => Criar Novas Receitas \t\t\t*\n";
-    echo "*   2 => Listar todas as Receitas\t\t*\n";
-    echo "*   3 => Atualizar receitas existentes\t\t*\n";
-    echo "*   4 => Apagar receitas\t\t\t*\n";
-    echo "*\t\t\t\t\t\t*\n";
-    echo "* * * * * * * * * | Fase  5 | * * * * * * * * * *\n";
-    echo "*\t\t\t\t\t\t*\n";
-    echo "*   5 => Criar Categorias\t\t\t*\n";
-    echo "*   6 => Listar Categorias\t\t\t*\n";
-    echo "*   7 => Associar Receitas a Categorias\t\t*\n";
-    echo "*   8 => Desassociar Receitas a Categorias\t*\n";
-    echo "*   9 => Listar Receitas por Categoria\t\t*\n";
-    echo "*\t\t\t\t\t\t*\n";
-    echo "* * * * * * * * * | Fase  6 | * * * * * * * * * *\n";
-    echo "*\t\t\t\t\t\t*\n";
-    echo "*  10 => Listar Ingredientes\t\t\t*\n";
-    echo "*  11 => Adicionar Ingredientes\t\t\t*\n";
-    echo "*  12 => Associar Ingredientes a uma Receita\t*\n";
-    echo "*  13 => Atualizar Ingrediente da Receita\t*\n";
-    echo "*  14 => Remover Ingrediente de uma Receita\t*\n";
-    echo "*  15 => Mostrar Detalhes de uma Receita\t*\n";
-    echo "*\t\t\t\t\t\t*\n";
-    echo "* * * * * * * * * * * * * * * * * * * * * * * * *\n";
+    echo "\n* * * * * * * * * | Escolha uma opção | * * * * * * * * *\n";
+    echo "*\t\t\t\t\t\t\t*\n";
+    echo "*   0 => Sair do Programa\t\t\t\t*\n";
+    echo "*\t\t\t\t\t\t\t*\n";
+    echo "* * * * * * * * * * * | Fase  4 | * * * * * * * * * * * *\n";
+    echo "*\t\t\t\t\t\t\t*\n";
+    echo "*   1 => Criar Novas Receitas\t\t\t\t*\n";
+    echo "*   2 => Listar todas as Receitas\t\t\t*\n";
+    echo "*   3 => Atualizar receitas existentes\t\t\t*\n";
+    echo "*   4 => Apagar receitas\t\t\t\t*\n";
+    echo "*\t\t\t\t\t\t\t*\n";
+    echo "* * * * * * * * * * * | Fase  5 | * * * * * * * * * * * *\n";
+    echo "*\t\t\t\t\t\t\t*\n";
+    echo "*   5 => Criar Categorias\t\t\t\t*\n";
+    echo "*   6 => Listar Categorias\t\t\t\t*\n";
+    echo "*   7 => Associar Receitas a Categorias\t\t\t*\n";
+    echo "*   8 => Desassociar Receitas a Categorias\t\t*\n";
+    echo "*   9 => Listar Receitas por Categoria\t\t\t*\n";
+    echo "*\t\t\t\t\t\t\t*\n";
+    echo "* * * * * * * * * * * | Fase  6 | * * * * * * * * * * * *\n";
+    echo "*\t\t\t\t\t\t\t*\n";
+    echo "*  10 => Listar Ingredientes\t\t\t\t*\n";
+    echo "*  11 => Adicionar Ingredientes\t\t\t\t*\n";
+    echo "*  12 => Associar Ingredientes a uma Receita\t\t*\n";
+    echo "*  13 => Atualizar Ingrediente da Receita\t\t*\n";
+    echo "*  14 => Remover Ingrediente de uma Receita\t\t*\n";
+    echo "*  15 => Mostrar Detalhes de uma Receita\t\t*\n";
+    echo "*\t\t\t\t\t\t\t*\n";
+    echo "* * * * * * * * * * * | Fase  7 | * * * * * * * * * * * *\n";
+    echo "*\t\t\t\t\t\t\t*\n";
+    echo "*  16 => Listar Receitas de uma determinada Categoria\t*\n";
+    echo "*  17 => Listar Receitas que contenham um Ingrediente\t*\n";
+    echo "*  18 => Ver Detalhes completos de uma receita\t\t*\n";
+    echo "*  19 => Pesquisar Receitas pelo título\t\t\t*\n";
+    echo "*\t\t\t\t\t\t\t*\n";
+    echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n";
+}
+
+function printStartMenu(){
+    echo "\n* * * * | Menu  Inicial | * * * *\n";
+    echo "*\t\t\t\t*\n";
+    echo "*   1 => Menu Completo\t\t*\n";
+    echo "*\t\t\t\t*\n";
+    echo "*   4 => Menu da Fase 4 \t*\n";
+    echo "*   5 => Menu da Fase 5 \t*\n";
+    echo "*   6 => Menu da Fase 6 \t*\n";
+    echo "*   7 => Menu da Fase 7 \t*\n";
+    echo "*\t\t\t\t*\n";
+    echo "*   0 => Sair do Programa\t*\n";
+    echo "*\t\t\t\t*\n";
+    echo "* * * * * * * * * * * * * * * * *\n";
+}
+
+// Imprime vários Menus
+function printSelectiveMenu($phase){
+    echo "\n* * * * * * * * * | Menu Secundário | * * * * * * * * * *\n";
+    echo "*\t\t\t\t\t\t\t*\n";
+    if($phase == 0 || $phase == 4){
+        echo "* * * * * * * * * * * | Fase  4 | * * * * * * * * * * * *\n";
+        echo "*\t\t\t\t\t\t\t*\n";
+        echo "*   1 => Criar Novas Receitas\t\t\t\t*\n";
+        echo "*   2 => Listar todas as Receitas\t\t\t*\n";
+        echo "*   3 => Atualizar receitas existentes\t\t\t*\n";
+        echo "*   4 => Apagar receitas\t\t\t\t*\n";
+        echo "*\t\t\t\t\t\t\t*\n";
+    }
+    if($phase == 0 || $phase == 5){
+        echo "* * * * * * * * * * * | Fase  5 | * * * * * * * * * * * *\n";
+        echo "*\t\t\t\t\t\t\t*\n";
+        echo "*   5 => Criar Categorias\t\t\t\t*\n";
+        echo "*   6 => Listar Categorias\t\t\t\t*\n";
+        echo "*   7 => Associar Receitas a Categorias\t\t\t*\n";
+        echo "*   8 => Desassociar Receitas a Categorias\t\t*\n";
+        echo "*   9 => Listar Receitas por Categoria\t\t\t*\n";
+        echo "*\t\t\t\t\t\t\t*\n";
+    }
+    if($phase == 0 || $phase == 6){
+        echo "* * * * * * * * * * * | Fase  6 | * * * * * * * * * * * *\n";
+        echo "*\t\t\t\t\t\t\t*\n";
+        echo "*  10 => Listar Ingredientes\t\t\t\t*\n";
+        echo "*  11 => Adicionar Ingredientes\t\t\t\t*\n";
+        echo "*  12 => Associar Ingredientes a uma Receita\t\t*\n";
+        echo "*  13 => Atualizar Ingrediente da Receita\t\t*\n";
+        echo "*  14 => Remover Ingrediente de uma Receita\t\t*\n";
+        echo "*  15 => Mostrar Detalhes de uma Receita\t\t*\n";
+        echo "*\t\t\t\t\t\t\t*\n";
+    }
+    if($phase == 0 || $phase == 7){
+        echo "* * * * * * * * * * * | Fase  7 | * * * * * * * * * * * *\n";
+        echo "*\t\t\t\t\t\t\t*\n";
+        echo "*  16 => Listar Receitas de uma determinada Categoria\t*\n";
+        echo "*  17 => Listar Receitas que contenham um Ingrediente\t*\n";
+        echo "*  18 => Ver Detalhes completos de uma receita\t\t*\n";
+        echo "*  19 => Pesquisar Receitas pelo título\t\t\t*\n";
+        echo "*\t\t\t\t\t\t\t*\n";
+    }
+    echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n";
+    echo "*\t\t\t\t\t\t\t*\n";
+    echo "*   0 => Voltar ao Menu Inicial\t\t\t\t*\n";
+    echo "*\t\t\t\t\t\t\t*\n";
+    echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n";
 }
 
 // Abre conexão com uma Base de Dados
@@ -733,5 +898,85 @@ function listRecipeWithIngredients($conn){
     }
     return $recipe_ids;
 }
+
+// ****************************************| FASE 7 |****************************************
+
+// FASE 7 - 7.1 - Listar todas as receitas de uma determinada categoria
+// Dado um nome ou ID de categoria, listar todas as receitas associadas
+//// O MESMO QUE 5.3 só que dá por pedir por nome?
+function listRecipesInCategoryByName($conn){
+    // echo "not implemented";
+    // return;
+
+    $categories = listCategories($conn);
+
+    $category_input = readline("Id/nome da categoria para listar receitas: ");
+
+    if(is_numeric($category_input)){
+        $id_category = $category_input;        
+        if(!in_array($id_category, $categories)){
+            echo "Erro: Categoria inexistente.\n";
+            return;
+        }
+    }
+    else{
+        $query = "SELECT id FROM categorias WHERE nome = '$category_input';";
+        $resultado = mysqli_query($conn, $query);
+        if(mysqli_num_rows($resultado) == 0){
+            echo "Erro: Categoria inexistente.\n";
+            return;
+        }
+        $info = mysqli_fetch_assoc($resultado);
+        $id_category = $info["id"];
+    }
+
+    $query = "SELECT receitas.id as id, receitas.nome as nome
+    FROM categorias_receitas 
+    INNER JOIN categorias 
+    ON categorias_receitas.id_categoria = categorias.id 
+    INNER JOIN receitas 
+    ON categorias_receitas.id_receita = receitas.id 
+    WHERE categorias.id = $id_category;";
+    
+    $resultado = mysqli_query($conn, $query);
+    if(mysqli_num_rows($resultado) == 0){
+        echo "Erro: Não existem receitas nesta categoria.\n";
+        return;
+    }
+
+    while($linha = mysqli_fetch_assoc($resultado)){
+        echo "  | ID: " . $linha["id"] . " | Nome: " . $linha["nome"] . " |\n";
+    }
+}
+
+
+// FASE 7 - 7.2 - Listar todas as receitas que contenham um determinado ingrediente
+function listAllRecipesWithIngredient($conn){
+    echo "not implemented";
+    return;
+    // pedir id de ingrediente
+    
+    // query
+
+}
+
+// FASE 7 - 7.3 - Ver detalhes completos de uma receita 
+// Dado um ID ou nome da receita, apresentar: (Título | Etapas de preparação (descrição) | Ingredientes, quantidades e unidades)
+//// O MESMO QUE 6.5 só que dá por pedir por nome?
+function listCompleteRecipe($conn){
+    echo "not implemented";
+    return;
+    
+}
+
+
+// FASE 7 - 7.4 - Pesquisar receitas por parte do título
+function searchRecipeByTitle($conn){
+    echo "not implemented";
+    return;
+    
+    // LIKE query
+}
+
 
 ?>
