@@ -475,7 +475,7 @@ function tempMenu($conn, $phase = 0){
                 case 16: listRecipesInCategoryByName($conn); break;     //DONE
                 case 17: listAllRecipesWithIngredient($conn); break;    
                 case 18: listCompleteRecipe($conn); break;              //DONE
-                case 19: searchRecipeByTitle($conn); break;             
+                case 19: searchRecipesByTitle($conn); break;            //DONE
                 /*******************| Default |*******************/
                 default: echo "\nERRO: Opção Inválida!\n"; $error = true; break;
             }
@@ -515,7 +515,7 @@ function tempMenu($conn, $phase = 0){
                 case 16: listRecipesInCategoryByName($conn); break;
                 case 17: listAllRecipesWithIngredient($conn); break;
                 case 18: listCompleteRecipe($conn); break;
-                case 19: searchRecipeByTitle($conn); break;
+                case 19: searchRecipesByTitle($conn); break;
                 default: echo "\nERRO: Opção Inválida!\n"; $error = true; break;
             }
         }
@@ -1029,13 +1029,28 @@ function listCompleteRecipe($conn){
     return $recipe_ids;
 }
 
-
 // FASE 7 - 7.4 - Pesquisar receitas por parte do título
-function searchRecipeByTitle($conn){
-    echo "not implemented";
-    return;
+function searchRecipesByTitle($conn){
+
+    $search_input_text = readline("Insira o que pesquisar no nome da receita: ");
+
+    $query = "SELECT * FROM receitas WHERE nome LIKE '%$search_input_text%';";
+    $resultado = mysqli_query($conn, $query);
     
-    // LIKE query
+    echo "\n+---------------------------------| " . mysqli_num_rows($resultado) . " resultado(s) encontrado(s) |----------------------------------+\n";
+    while($linha = mysqli_fetch_assoc($resultado)){ 
+        echo "| ID " . $linha["id"] . " | ";
+        echo "NOME: '" . $linha["nome"] . "' | ";
+        echo "TEMPO: " . $linha["tempo_confecao"] . " min | ";
+        echo $linha["doses"] . " doses |\n";
+        // echo $show_description ? "| DESCRIÇÃO:\n" . $linha["descricao"] . "\n\n" : "";
+        $description_lines = explode("\n", $linha["descricao"]);
+        echo "| DESCRIÇÃO:\n";
+        foreach($description_lines as $desc_line)
+            echo "| $desc_line\n";
+        // echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n";
+        echo "+---------------------------------------------------------------------------------------------------+\n";
+    }
 }
 
 
