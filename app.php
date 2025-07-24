@@ -109,23 +109,24 @@ function listRecipes($conn, $show_description = true){
     $query = "SELECT * FROM receitas;";
 
     $resultado = mysqli_query($conn, $query);
-    echo $show_description ? "\n\n* * * * * * * * * * * * * * * * * * | RECEITAS | * * * * * * * * * * * * * * * * * * *\n" : "";
+    echo $show_description ? "\n+-------------------------------------------------| RECEITAS |-------------------------------------------------+" : "";
     while($linha = mysqli_fetch_assoc($resultado)){
         echo "\n| ID " . $linha["id"] . " | ";
         echo "NOME: '" . $linha["nome"] . "' | ";
         echo "TEMPO: " . $linha["tempo_confecao"] . " min | ";
-        echo $linha["doses"] . " doses |\n";
+        echo $linha["doses"] . " doses |";
         // echo $show_description ? "| DESCRIÇÃO:\n" . $linha["descricao"] . "\n\n" : "";
-        $description_lines = explode("\n", $linha["descricao"]);
-        echo "| DESCRIÇÃO:\n";
-        foreach($description_lines as $desc_line)
-            echo "| $desc_line\n";
-        echo $show_description ?"\n* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * \n" : "";
+        if($show_description){
+            $description_lines = explode("\n", $linha["descricao"]);
+            echo "\n| DESCRIÇÃO:\n";
+            foreach($description_lines as $desc_line)
+                echo "|| $desc_line\n";
+        }
+        echo $show_description ?"+---------------------------------------------------------------------------------------------------+" : "";
         $recipe_ids[] = $linha["id"];
     }
-    echo $show_description ? "\n" : "";
+    echo "\n";
     return $recipe_ids;
-    //TODO (Optional): Check better formatting for descricao, possibly \t for each \n
 }
 
 // FASE 5 - 5.1.2 - Listar Categorias
@@ -707,9 +708,9 @@ function listIngredients($conn){
 
     $resultado = mysqli_query($conn, $query);
 
-    echo "\nIngredientes:\n";
+    echo "\n| INGREDIENTES:\n";
     while($linha = mysqli_fetch_assoc($resultado)){
-        echo "  " . $linha["nome"] . "\n";
+        echo "|| " . $linha["nome"] . "\n";
         $ingredient_names[] = $linha["nome"];
     }
     return $ingredient_names;
@@ -968,11 +969,35 @@ function listRecipesInCategoryByName($conn){
 
 // FASE 7 - 7.2 - Listar todas as receitas que contenham um determinado ingrediente
 function listAllRecipesWithIngredient($conn){
-    echo "not implemented";
-    return;
+    $ingredient_names = listIngredients($conn);
+
     // pedir id de ingrediente
-    
+    $ingredient_name = readline("Insira Nome do Ingrediente: ");
+
+    if(!in_array($ingredient_name, $ingredient_names)){
+        echo "Erro: Ingrediente <$ingredient_name> não existe na Base de dados.\n";
+        return;
+    }
+
     // query
+    $query = "SELECT nome, tempo_confecao, doses, nome_ingrediente, quantidade, unidade FROM receitas 
+    INNER JOIN ingredientes_receitas 
+    ON receitas.id = ingredientes_receitas.id_receita 
+    WHERE nome_ingrediente = '$ingredient_name';";
+
+    $resultado = mysqli_query($conn, $query);
+    if(mysqli_num_rows($resultado) == 0){
+        echo "Erro: Não existem Receitas com <$ingredient_name>.\n";
+        return;
+    }
+
+    while($linha = mysqli_fetch_assoc($resultado)){
+        echo "| NOME: '" . $linha["nome"] . "' | ";
+        echo "TEMPO: " . $linha["tempo_confecao"] . " min | ";
+        echo $linha["doses"] . " doses | ";
+        echo $linha["nome_ingrediente"] . " | " . ($linha["quantidade"] == 0 ? "": $linha["quantidade"] . " ")  . $linha["unidade"]. " |\n";
+
+    }
 
 }
 
@@ -1019,10 +1044,10 @@ function listCompleteRecipe($conn){
             $description_lines = explode("\n", $linha["descricao"]);
             echo "| DESCRIÇÃO:\n";
             foreach($description_lines as $desc_line)
-                echo "| $desc_line\n";
+                echo "|| $desc_line\n";
         }
         echo $first ? "| INGREDIENTES:\n" : "";
-        echo "| " . $linha["nome_ingrediente"] . " | QUANTIDADE: " . ($linha["quantidade"] == 0 ? "": $linha["quantidade"] . " ")  . $linha["unidade"]. " |\n";
+        echo "|| " . $linha["nome_ingrediente"] . " | " . ($linha["quantidade"] == 0 ? "": $linha["quantidade"] . " ")  . $linha["unidade"]. " |\n";
         $first = false;
     }
 
@@ -1037,7 +1062,7 @@ function searchRecipesByTitle($conn){
     $query = "SELECT * FROM receitas WHERE nome LIKE '%$search_input_text%';";
     $resultado = mysqli_query($conn, $query);
     
-    echo "\n+---------------------------------| " . mysqli_num_rows($resultado) . " resultado(s) encontrado(s) |----------------------------------+\n";
+    echo "+---------------------------------| " . mysqli_num_rows($resultado) . " resultado(s) encontrado(s) |----------------------------------+\n";
     while($linha = mysqli_fetch_assoc($resultado)){ 
         echo "| ID " . $linha["id"] . " | ";
         echo "NOME: '" . $linha["nome"] . "' | ";
@@ -1047,11 +1072,11 @@ function searchRecipesByTitle($conn){
         $description_lines = explode("\n", $linha["descricao"]);
         echo "| DESCRIÇÃO:\n";
         foreach($description_lines as $desc_line)
-            echo "| $desc_line\n";
-        // echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n";
+            echo "|| $desc_line\n";
         echo "+---------------------------------------------------------------------------------------------------+\n";
     }
 }
+
 
 
 ?>
