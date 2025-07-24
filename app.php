@@ -427,7 +427,7 @@ function menu($conn, $phase = 0){
     return $menu_opt;
 }
 
-// Menu com todas as operações
+// Handler Menu Secundário (com todas as operações)
 function tempMenu($conn, $phase = 0){
     do{
         printSelectiveMenu($phase);
@@ -507,7 +507,7 @@ function tempMenu($conn, $phase = 0){
     }while($menu_opt != 0 && $error);
 }
 
-// Menu Inicial
+// Handler Menu Inicial
 function shorterMenu($conn){
     do{
         printStartMenu();
@@ -566,6 +566,7 @@ function printMenu(){
     echo "* * * * * * * * * * * * * * * * * * * * * * * * * * * * *\n";
 }
 
+// Imprime Menu Inicial
 function printStartMenu(){
     echo "\n* * * * | Menu  Inicial | * * * *\n";
     echo "*\t\t\t\t*\n";
@@ -581,7 +582,7 @@ function printStartMenu(){
     echo "* * * * * * * * * * * * * * * * *\n";
 }
 
-// Imprime vários Menus
+// Imprime Menus Secundários seletivos
 function printSelectiveMenu($phase){
     echo "\n* * * * * * * * * | Menu Secundário | * * * * * * * * * *\n";
     echo "*\t\t\t\t\t\t\t*\n";
