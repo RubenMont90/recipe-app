@@ -656,15 +656,25 @@ function deleteRecipe($conn){
     $resultado = mysqli_query($conn, $query);
     echo $resultado ? "Receita<Id:$id> eliminada com sucesso.\n" 
     : "Erro a eliminar a receita de <receitas>.\n";
+
+    // Grab the number of entries in the table categorias_receitas
+    $query = "SELECT COUNT(*) as entries FROM categorias_receitas WHERE id_receita = $id;";
+    $resultado= mysqli_query($conn, $query);
+    $num_categs_per_recipe = mysqli_fetch_assoc($resultado)["entries"];
     
     // remover associacoes com a receita de <categorias_receitas>
     $query = "DELETE FROM categorias_receitas WHERE id_receita = $id;";
-    echo mysqli_query($conn, $query) ? "Registo(s) associado(s) com categorias eliminado(s) com sucesso.\n" 
+    echo mysqli_query($conn, $query) ? "| $num_categs_per_recipe registo(s) associado(s) com categorias eliminado(s) com sucesso.\n" 
     : "Erro a eliminar a receita de <categorias_receitas>.\n";
-
+    
+    // Grab the number of entries in the table ingredientes_receitas
+    $query = "SELECT COUNT(*) as entries FROM ingredientes_receitas WHERE id_receita = $id;";
+    $resultado= mysqli_query($conn, $query);
+    $num_ings_per_recipe = mysqli_fetch_assoc($resultado)["entries"];
+    
     // remover associacoes com a receita de <ingredientes_receitas>
     $query = "DELETE FROM ingredientes_receitas WHERE id_receita = $id;";
-    echo mysqli_query($conn, $query) ? "Ingrediente(s) associado(s) à receita apagado(s) com sucesso.\n"
+    echo mysqli_query($conn, $query) ? "| $num_ings_per_recipe ingrediente(s) associado(s) à receita apagado(s) com sucesso.\n"
     : "Erro a eliminar a receita de <ingredientes_receitas>.\n";
 
 }
