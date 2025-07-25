@@ -212,42 +212,68 @@ function listCategories($conn, $print = true){
 
 // FASE 5 - 5.3 - Consultar receitas filtradas por categoria ----- ALTERAR PARA LISTAR TODOS MAS POR CATEGORIAS
 // Lista todas as Receitas dada uma Categoria
-function listRecipesInCategory($conn){
-    $categories = listCategories($conn);
+function listRecipesInEachCategory($conn){
+    // $categories = listCategories($conn);
 
-    $id_category = readline("Id da categoria para listar receitas: ");
+    // $id_category = readline("Id da categoria para listar receitas: ");
 
-    if(!in_array($id_category, $categories)){
-        echo "Erro: Categoria inexistente.\n";
-        return;
-    }
+    // if(!in_array($id_category, $categories)){
+    //     echo "Erro: Categoria inexistente.\n";
+    //     return;
+    // }
     
-    $query = "SELECT receitas.id as id, receitas.nome as nome
-    FROM categorias_receitas 
-    INNER JOIN categorias 
-    ON categorias_receitas.id_categoria = categorias.id 
-    INNER JOIN receitas 
-    ON categorias_receitas.id_receita = receitas.id 
-    WHERE categorias.id = $id_category;";
+    // $query = "SELECT receitas.id as id, receitas.nome as nome
+    // FROM categorias_receitas 
+    // INNER JOIN categorias 
+    // ON categorias_receitas.id_categoria = categorias.id 
+    // INNER JOIN receitas 
+    // ON categorias_receitas.id_receita = receitas.id 
+    // WHERE categorias.id = $id_category;";
 
-    /*  PARA TODAS AS RECEITAS MAS POR CATEGORIA
-            SELECT categorias.nome, receitas.nome, descricao, tempo_confecao, doses
-            FROM categorias_receitas 
-            INNER JOIN categorias 
-            ON categorias_receitas.id_categoria = categorias.id 
-            INNER JOIN receitas 
-            ON categorias_receitas.id_receita = receitas.id
-            ORDER BY categorias.id ASC;
-    */
+    /*  PARA TODAS AS RECEITAS MAS POR CATEGORIA 
+        $query = "SELECT categorias.nome as categoria, receitas.nome, descricao, tempo_confecao, doses
+        FROM categorias_receitas 
+        INNER JOIN categorias 
+        ON categorias_receitas.id_categoria = categorias.id 
+        INNER JOIN receitas 
+        ON categorias_receitas.id_receita = receitas.id
+        ORDER BY categorias.id ASC;";
+    /*/
+
+    $query = "SELECT categorias.nome as categoria, receitas.nome, descricao, tempo_confecao, doses
+        FROM receitas 
+        LEFT JOIN categorias_receitas
+        ON categorias_receitas.id_receita = receitas.id
+        LEFT JOIN categorias 
+        ON categorias_receitas.id_categoria = categorias.id 
+        ORDER BY categorias.id ASC;";
     
     $resultado = mysqli_query($conn, $query);
     if(mysqli_num_rows($resultado) == 0){
-        echo "Erro: Não existem receitas nesta categoria.\n";
+        echo "Erro: Não existem receitas.\n";
+        //echo "Erro: Não existem receitas nesta categoria.\n";
         return;
     }
 
+    // while($linha = mysqli_fetch_assoc($resultado)){
+    //     echo "  | ID: " . $linha["id"] . " | Nome: " . $linha["nome"] . " |\n";
+    // }
+
+    $category = "-";
     while($linha = mysqli_fetch_assoc($resultado)){
-        echo "  | ID: " . $linha["id"] . " | Nome: " . $linha["nome"] . " |\n";
+        if($category != $linha["categoria"]){
+            $category = $linha["categoria"];
+            $category_title = is_null($linha["categoria"]) ? "| SEM CATEGORIA |" : "@@| $category |@@";
+            echo "\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@$category_title@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n";
+        }
+        echo "\n| NOME: '" . $linha["nome"] . "' | ";
+        echo "TEMPO: " . $linha["tempo_confecao"] . " min | ";
+        echo $linha["doses"] . " doses |\n";
+
+        $description_lines = explode("\n", $linha["descricao"]);
+        echo "| DESCRIÇÃO:\n";
+        foreach($description_lines as $desc_line)
+            echo "|| $desc_line\n";
     }
 }
 
@@ -305,7 +331,6 @@ function listRecipeWithIngredients($conn){
 
 // FASE 7 - 7.1 - Listar todas as receitas de uma determinada categoria
 // Dado um nome ou ID de categoria, listar todas as receitas associadas
-//// O MESMO QUE 5.3 só que dá por pedir por nome?
 function listRecipesInCategoryByName($conn){
 
     $categories = listCategories($conn);
@@ -385,7 +410,6 @@ function listAllRecipesWithIngredient($conn){
 
 // FASE 7 - 7.3 - Ver detalhes completos de uma receita 
 // Dado um ID ou nome da receita, apresentar: (Título | Etapas de preparação (descrição) | Ingredientes, quantidades e unidades)
-//// O MESMO QUE 6.5 só que dá por pedir por nome?
 function listCompleteRecipe($conn){
 
     $recipe_ids = listRecipes($conn, false);
@@ -410,7 +434,7 @@ function listCompleteRecipe($conn){
         $id_recipe = $info["id"];
     }
 
-    $query = "SELECT receitas.id as id_receita, nome, descricao, tempo_confecao, doses, nome_ingrediente, quantidade, unidade FROM receitas 
+    $query = "SELECT receitas.id, nome, descricao, tempo_confecao, doses, nome_ingrediente, quantidade, unidade FROM receitas 
     INNER JOIN ingredientes_receitas 
     ON receitas.id = ingredientes_receitas.id_receita 
     WHERE receitas.id = $id_recipe;";
@@ -609,7 +633,6 @@ function updateIngredientInRecipe($conn){
     : "Erro a atualizar a informação do ingrediente da receita.\n";
 }
 
-
 // ****************************************| DELETE |****************************************
 
 // FASE 4 - 4.4 - Apagar receitas
@@ -630,6 +653,7 @@ function deleteRecipe($conn){
 
     // remover receita de <receitas>
     $query = "DELETE FROM receitas WHERE id = $id;";
+    
     echo mysqli_query($conn, $query)
     ? "Receita (ID:<$id>) eliminada de <receitas> com sucesso.\n" 
     : "Erro a eliminar a receita de <receitas>.\n";
@@ -786,7 +810,7 @@ function goToSecondaryMenu($conn, $phase = 0){
                 case 6: listCategories($conn); break;
                 case 7: createCategoryRecipes($conn); break;
                 case 8: deleteCategoryRecipes($conn); break;
-                case 9: listRecipesInCategory($conn); break;
+                case 9: listRecipesInEachCategory($conn); break;
                 /*******************| PHASE 6 |*******************/
                 case 10: listIngredients($conn); break;
                 case 11: createIngredient($conn); break;
@@ -818,7 +842,7 @@ function goToSecondaryMenu($conn, $phase = 0){
                 case 6: listCategories($conn); break;
                 case 7: createCategoryRecipes($conn); break;
                 case 8: deleteCategoryRecipes($conn); break;
-                case 9: listRecipesInCategory($conn); break;
+                case 9: listRecipesInEachCategory($conn); break;
                 default: echo "\nERRO: Opção Inválida!\n"; $error = true; break;
             }
         } else if($phase == 6){
