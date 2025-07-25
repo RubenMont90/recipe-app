@@ -653,48 +653,20 @@ function deleteRecipe($conn){
 
     // remover receita de <receitas>
     $query = "DELETE FROM receitas WHERE id = $id;";
-    
-    echo mysqli_query($conn, $query)
-    ? "Receita (ID:<$id>) eliminada de <receitas> com sucesso.\n" 
+    $resultado = mysqli_query($conn, $query);
+    echo $resultado ? "Receita<Id:$id> eliminada com sucesso.\n" 
     : "Erro a eliminar a receita de <receitas>.\n";
     
     // remover associacoes com a receita de <categorias_receitas>
     $query = "DELETE FROM categorias_receitas WHERE id_receita = $id;";
-    echo mysqli_query($conn, $query)
-    ? "Receita (ID:<$id>) eliminada de <categorias_receitas> com sucesso.\n" 
+    echo mysqli_query($conn, $query) ? "Registo(s) associado(s) com categorias eliminado(s) com sucesso.\n" 
     : "Erro a eliminar a receita de <categorias_receitas>.\n";
-
-    // verificar se os nomes de ingredientes estão presentes em mais alguma receita (ingredientes_receitas)
-    $query = "SELECT * FROM ingredientes_receitas WHERE id_receita = $id;";
-    $resultado = mysqli_query($conn, $query);
-    $ingredientes = [];
-
-    // guardar todos os ingredientes presentes na receita
-    echo "Ingredientes da receita:\n";
-    while($linha = mysqli_fetch_assoc($resultado)){
-        $ingredientes[] = $linha["nome_ingrediente"];
-        echo "> Nome: ". $linha["nome_ingrediente"] . "\n";
-    }
 
     // remover associacoes com a receita de <ingredientes_receitas>
     $query = "DELETE FROM ingredientes_receitas WHERE id_receita = $id;";
-    echo mysqli_query($conn, $query)
-    ? "Receita (ID:<$id>) eliminada de <ingredientes_receitas> com sucesso.\n" 
+    echo mysqli_query($conn, $query) ? "Ingrediente(s) associado(s) à receita apagado(s) com sucesso.\n"
     : "Erro a eliminar a receita de <ingredientes_receitas>.\n";
-    
-    // CÓDIGO REMOVIDO - um Ingrediente pode existir mesmo não ligado a uma receita.
-    // procurar nos <ingredientes_receitas> por ingrediente da receita e eliminar de <ingredientes>
-    // foreach($ingredientes as $ingrediente){
-    //     $query = "SELECT * FROM ingredientes_receitas WHERE nome_ingrediente = '$ingrediente';";
-    //     $result = mysqli_query($conn, $query);
-    //     if(mysqli_num_rows($result) == 0){
-    //         // eliminar o ingrediente em questão dos ingredientes_receitas (não está presente em mais receitas)
-    //         $query = "DELETE FROM ingredientes WHERE nome = '$ingrediente';";
-    //         echo mysqli_query($conn, $query)
-    //         ? "Ingrediente (Nome:<$ingrediente>) eliminado de <ingredientes> com sucesso.\n" 
-    //         : "Erro a eliminar o ingrediente de <ingredientes>.\n";
-    //     }
-    // }
+
 }
 
 // FASE 5 - 5.2.2 - Desassociar receitas a categorias 
