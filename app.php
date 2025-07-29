@@ -366,7 +366,7 @@ function listRecipesInCategoryByName($conn){
     
     $resultado = mysqli_query($conn, $query);
     if(mysqli_num_rows($resultado) == 0){
-        echo "Erro: Não existem receitas nesta categoria.\n";
+        echo "Erro: Não existem receitas associadas à categoria.\n";
         return;
     }
 
