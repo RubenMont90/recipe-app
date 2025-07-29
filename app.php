@@ -113,11 +113,9 @@ function createIngredient($conn){
         return;
     }
 
-    $resultado = mysqli_query($conn, $query);
-    if(mysqli_num_rows($resultado) == 0){
-        echo "Erro: Ingrediente não adicionado.\n";
-        return;
-    }
+    echo mysqli_query($conn, $query)
+    ? "Ingrediente '$nome' adicionado com sucesso. (ID:<" . mysqli_insert_id($conn) . ">)\n" 
+    : "Erro: Ingrediente não adicionado.\n";
 }
 
 // FASE 6 - 6.2 - Associar ingredientes a receitas com quantidade e unidade
@@ -716,7 +714,7 @@ function deleteIngredientFromRecipe($conn){
     
     $recipe_ids = listRecipes($conn, false);
 
-    if(count($recipe_ids) > 0){
+    if(count($recipe_ids) == 0){
         echo "Não existem receitas na Base de dados.\n";
         return;
     }
@@ -729,6 +727,11 @@ function deleteIngredientFromRecipe($conn){
     }
     
     $ingrs_recipe = listIngredientsInRecipe($conn, $id_recipe);
+
+    if(count($ingrs_recipe) == 0){
+        echo "Receita não tem ingredientes associados.\n";
+        return;
+    }
     
     $id_ingr_recipe = readline("Id do ingrediente a remover: ");
 
