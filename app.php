@@ -435,6 +435,17 @@ function listCompleteRecipe($conn){
         $id_recipe = $info["id"];
     }
 
+    $query = "SELECT receitas.id as id_receita, nome, descricao, tempo_confecao, doses FROM receitas WHERE receitas.id = $id_recipe;";
+    $resultado = mysqli_query($conn, $query);
+    $linha = mysqli_fetch_assoc($resultado);
+    echo "| Nome: '" . $linha["nome"] . "' | ";
+    echo "Tempo: " . $linha["tempo_confecao"] . " min | ";
+    echo $linha["doses"] . " doses |\n";
+    $description_lines = explode("\n", $linha["descricao"]);
+        echo "| Descrição |\n";
+        foreach($description_lines as $desc_line)
+            echo "| $desc_line\n";
+
     $query = "SELECT receitas.id, nome, descricao, tempo_confecao, doses, nome_ingrediente, quantidade, unidade FROM receitas 
     INNER JOIN ingredientes_receitas 
     ON receitas.id = ingredientes_receitas.id_receita 
@@ -442,21 +453,13 @@ function listCompleteRecipe($conn){
 
     $resultado = mysqli_query($conn, $query);
 
-    $first = true;
-    while($linha = mysqli_fetch_assoc($resultado)){
-        echo $first ? "| NOME: '" . $linha["nome"] . "' | " : "";
-        echo $first ? "TEMPO: " . $linha["tempo_confecao"] . " min | " : "";
-        echo $first ? $linha["doses"] . " doses |\n" : "";
-        if($first){
-            $description_lines = explode("\n", $linha["descricao"]);
-            echo "| DESCRIÇÃO:\n";
-            foreach($description_lines as $desc_line)
-                echo "|| $desc_line\n";
-        }
-        echo $first ? "| INGREDIENTES:\n" : "";
-        echo "|| " . $linha["nome_ingrediente"] . " | " . ($linha["quantidade"] == 0 ? "": $linha["quantidade"] . " ")  . $linha["unidade"]. " |\n";
-        $first = false;
-    }
+    if(mysqli_num_rows($resultado) == 0)
+        return;
+    
+    echo "| Ingredientes |\n";
+    while($linha = mysqli_fetch_assoc($resultado))
+        echo "| " . $linha["nome_ingrediente"] . " | Quantidade: " . ($linha["quantidade"] == 0 ? "": $linha["quantidade"] . " ")  . $linha["unidade"]. " |\n";
+    
 
     return $recipe_ids;
 }
